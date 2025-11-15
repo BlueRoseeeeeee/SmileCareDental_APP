@@ -1,47 +1,137 @@
 /**
- *@author: HoTram
+ * Home Screen - Trang chủ sau khi đăng nhập
+ * @author: HoTram
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 
 const COLORS = {
   primary: '#2596be',
+  secondary: '#2c5f4f',
   background: '#f5f5f5',
   white: '#ffffff',
   text: '#333333',
   textLight: '#666666',
+  border: '#e0e0e0',
+  success: '#34a853',
+  warning: '#fbbc04',
 };
 
 export default function HomeScreen() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
-  const handleLogout = async () => {
-    await logout();
-    router.replace('/(auth)/login');
-  };
+  const menuItems = [
+    {
+      id: 1,
+      title: 'Đặt lịch khám',
+      icon: 'calendar-outline',
+      color: '#4da6ff',
+      bgColor: '#e6f4ff',
+      route: '/booking',
+    },
+    {
+      id: 2,
+      title: 'Lịch của tôi',
+      icon: 'list-outline',
+      color: '#52c41a',
+      bgColor: '#f0ffe6',
+      route: '/appointments',
+    },
+    {
+      id: 3,
+      title: 'Hồ sơ',
+      icon: 'document-text-outline',
+      color: '#ff4d4f',
+      bgColor: '#fff1f0',
+      route: '/records',
+    },
+    {
+      id: 4,
+      title: 'Hóa đơn',
+      icon: 'card-outline',
+      color: '#faad14',
+      bgColor: '#fffbe6',
+      route: '/invoices',
+    },
+  ];
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Ionicons name="medical" size={60} color={COLORS.primary} />
-        <Text style={styles.title}>SmileCare Dental</Text>
-        <Text style={styles.subtitle}>Chào mừng trở lại!</Text>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.greeting}>Xin chào,</Text>
+            <Text style={styles.userName}>{user?.fullName || 'Người dùng'}!</Text>
+          </View>
+          <TouchableOpacity onPress={() => router.push('/profile')}>
+            {user?.avatar ? (
+              <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Ionicons name="person" size={24} color={COLORS.primary} />
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Stats Cards */}
+        <View style={styles.statsRow}>
+          <View style={[styles.statCard, { backgroundColor: '#e6f4ff' }]}>
+            <View style={styles.statIconContainer}>
+              <Ionicons name="calendar" size={32} color="#4da6ff" />
+            </View>
+            <Text style={styles.statNumber}>0</Text>
+            <Text style={styles.statLabel}>Lịch sắp tới</Text>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: '#fff9e6' }]}>
+            <View style={styles.statIconContainer}>
+              <Ionicons name="alert-circle" size={32} color="#faad14" />
+            </View>
+            <Text style={styles.statNumber}>0</Text>
+            <Text style={styles.statLabel}>Chờ thanh toán</Text>
+          </View>
+        </View>
       </View>
 
+      {/* Main Content */}
       <View style={styles.content}>
-        <Text style={styles.welcomeText}>Xin chào, {user?.fullName || 'Người dùng'}</Text>
-        <Text style={styles.roleText}>Vai trò: {user?.role || 'patient'}</Text>
-      </View>
+        {/* Chức năng Section */}
+        <Text style={styles.sectionTitle}>Chức năng</Text>
+        <View style={styles.menuGrid}>
+          {menuItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.menuCard}
+              onPress={() => router.push(item.route)}
+            >
+              <View style={[styles.menuIconWrapper, { backgroundColor: item.bgColor }]}>
+                <Ionicons name={item.icon} size={28} color={item.color} />
+              </View>
+              <Text style={styles.menuTitle}>{item.title}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
-        <Text style={styles.logoutText}>Đăng xuất</Text>
-      </TouchableOpacity>
-    </View>
+        {/* Thông tin Section */}
+        <Text style={styles.sectionTitle}>Thông tin</Text>
+        <View style={styles.infoCard}>
+          <View style={styles.infoHeader}>
+            <Ionicons name="information-circle" size={24} color={COLORS.primary} />
+            <Text style={styles.infoTitle}>SmileCare Dental Clinic</Text>
+          </View>
+          <Text style={styles.infoSubtitle}>Chăm sóc nụ cười của bạn</Text>
+          <View style={styles.infoRow}>
+            <Ionicons name="call" size={16} color={COLORS.textLight} />
+            <Text style={styles.infoText}>Hotline: 1900-xxxx</Text>
+          </View>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -49,54 +139,146 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    padding: 20,
-    justifyContent: 'center',
   },
   header: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    marginTop: 16,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.textLight,
-    marginTop: 8,
-  },
-  content: {
     backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
-    alignItems: 'center',
-  },
-  welcomeText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  roleText: {
-    fontSize: 16,
-    color: COLORS.textLight,
-  },
-  logoutButton: {
-    backgroundColor: COLORS.primary,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    height: 50,
+    paddingTop: 50,
+    paddingBottom: 20,
     paddingHorizontal: 20,
   },
-  logoutText: {
-    color: COLORS.white,
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  greeting: {
+    fontSize: 14,
+    color: COLORS.textLight,
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginTop: 2,
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+  },
+  avatarPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#e6f4ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  statIconContainer: {
+    marginBottom: 8,
+  },
+  statNumber: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: COLORS.textLight,
+    textAlign: 'center',
+  },
+  content: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  menuGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  menuCard: {
+    width: '48%',
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  menuIconWrapper: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  menuTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  infoCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  infoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  infoTitle: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: COLORS.text,
     marginLeft: 8,
+  },
+  infoSubtitle: {
+    fontSize: 14,
+    color: COLORS.textLight,
+    marginBottom: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  infoText: {
+    fontSize: 14,
+    color: COLORS.textLight,
   },
 });
