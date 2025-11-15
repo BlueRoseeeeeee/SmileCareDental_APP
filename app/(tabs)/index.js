@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,7 +22,32 @@ const COLORS = {
 };
 
 export default function HomeScreen() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const [showMenu, setShowMenu] = React.useState(false);
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Xác nhận đăng xuất',
+      'Bạn có chắc chắn muốn đăng xuất?',
+      [
+        {
+          text: 'Hủy',
+          style: 'cancel',
+        },
+        {
+          text: 'Đăng xuất',
+          onPress: async () => {
+            try {
+              await logout();
+              router.replace('/login');
+            } catch (_error) {
+              Alert.alert('Lỗi', 'Đăng xuất thất bại!');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const menuItems = [
     {
@@ -68,15 +93,55 @@ export default function HomeScreen() {
             <Text style={styles.greeting}>Xin chào,</Text>
             <Text style={styles.userName}>{user?.fullName || 'Người dùng'}!</Text>
           </View>
-          <TouchableOpacity onPress={() => router.push('/profile')}>
-            {user?.avatar ? (
-              <Image source={{ uri: user.avatar }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Ionicons name="person" size={24} color={COLORS.primary} />
+          <View>
+            <TouchableOpacity onPress={() => setShowMenu(!showMenu)}>
+              {user?.avatar ? (
+                <Image source={{ uri: user.avatar }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Ionicons name="person" size={24} color={COLORS.primary} />
+                </View>
+              )}
+            </TouchableOpacity>
+            
+            {/* Dropdown Menu */}
+            {showMenu && (
+              <View style={styles.menuDropdown}>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setShowMenu(false);
+                    router.push('/profile');
+                  }}
+                >
+                  <Ionicons name="person-outline" size={20} color={COLORS.text} />
+                  <Text style={styles.menuItemText}>Thông tin cá nhân</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setShowMenu(false);
+                    router.push('/change-password');
+                  }}
+                >
+                  <Ionicons name="lock-closed-outline" size={20} color={COLORS.text} />
+                  <Text style={styles.menuItemText}>Đổi mật khẩu</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[styles.menuItem, styles.menuItemDanger]}
+                  onPress={() => {
+                    setShowMenu(false);
+                    handleLogout();
+                  }}
+                >
+                  <Ionicons name="log-out-outline" size={20} color={COLORS.error} />
+                  <Text style={[styles.menuItemText, styles.menuItemTextDanger]}>Đăng xuất</Text>
+                </TouchableOpacity>
               </View>
             )}
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Stats Cards */}
@@ -280,5 +345,39 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 14,
     color: COLORS.textLight,
+  },
+  menuDropdown: {
+    position: 'absolute',
+    top: 60,
+    right: 0,
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    minWidth: 200,
+    paddingVertical: 8,
+    zIndex: 1000,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  menuItemText: {
+    fontSize: 14,
+    color: COLORS.text,
+    fontWeight: '500',
+  },
+  menuItemDanger: {
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  menuItemTextDanger: {
+    color: COLORS.error,
   },
 });
