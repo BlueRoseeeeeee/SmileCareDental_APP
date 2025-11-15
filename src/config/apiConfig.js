@@ -89,3 +89,9 @@ export const API_URLS = getAllServiceUrls();
 // API Base URL for auth service
 export const AUTH_API_URL = getServiceUrl('auth');
 export const BACKEND_URL = getBackendUrl('auth');
+
+// Export URLs for services
+export const SERVICE_URL = API_URLS.service;
+export const SCHEDULE_URL = API_URLS.schedule;
+export const RECORD_URL = API_URLS.record;
+export const APPOINTMENT_URL = API_URLS.appointment;

@@ -56,7 +56,7 @@ export default function HomeScreen() {
       icon: 'calendar-outline',
       color: '#4da6ff',
       bgColor: '#e6f4ff',
-      route: '/booking',
+      route: '/booking/select-service',
     },
     {
       id: 2,
