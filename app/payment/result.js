@@ -3,19 +3,19 @@
  * Payment Result Screen - Kết quả thanh toán
  */
 
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const COLORS = {
   primary: '#2596be',
@@ -196,13 +196,6 @@ export default function PaymentResultScreen() {
               <Text style={styles.detailLabel}>Mã giao dịch:</Text>
               <Text style={styles.detailValue}>{orderId}</Text>
             </View>
-
-            {code && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Mã phản hồi:</Text>
-                <Text style={styles.detailValue}>{code}</Text>
-              </View>
-            )}
 
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Thời gian:</Text>

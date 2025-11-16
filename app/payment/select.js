@@ -12,7 +12,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -134,23 +133,14 @@ export default function PaymentSelectionScreen() {
         console.log('🔵 [Payment Selection] VNPay response:', response);
 
         if (response.success && response.data?.paymentUrl) {
-          console.log('✅ [Payment Selection] Redirecting to VNPay:', response.data.paymentUrl);
+          console.log('✅ [Payment Selection] Opening VNPay in WebView:', response.data.paymentUrl);
           
-          Alert.alert(
-            'Chuyển đến VNPay',
-            'Bạn sẽ được chuyển đến trang thanh toán VNPay',
-            [
-              {
-                text: 'OK',
-                onPress: () => {
-                  Linking.openURL(response.data.paymentUrl).catch(err => {
-                    console.error('Failed to open URL:', err);
-                    Alert.alert('Lỗi', 'Không thể mở trang thanh toán');
-                  });
-                }
-              }
-            ]
-          );
+          // Lưu paymentUrl để dùng trong WebView screen
+          await AsyncStorage.setItem('payment_url', response.data.paymentUrl);
+          await AsyncStorage.setItem('payment_orderId', orderId);
+          
+          // Navigate đến WebView screen
+          router.push('/payment/webview');
         } else {
           throw new Error(response.message || 'Không thể tạo URL thanh toán VNPay');
         }
