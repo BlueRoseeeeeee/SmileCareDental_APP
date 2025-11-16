@@ -8,6 +8,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } fr
 import { router } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import TodayAppointments from '../../src/components/TodayAppointments';
 
 const COLORS = {
   primary: '#2596be',
@@ -144,24 +145,10 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Stats Cards */}
-        <View style={styles.statsRow}>
-          <View style={[styles.statCard, { backgroundColor: '#e6f4ff' }]}>
-            <View style={styles.statIconContainer}>
-              <Ionicons name="calendar" size={32} color="#4da6ff" />
-            </View>
-            <Text style={styles.statNumber}>0</Text>
-            <Text style={styles.statLabel}>Lịch sắp tới</Text>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: '#fff9e6' }]}>
-            <View style={styles.statIconContainer}>
-              <Ionicons name="alert-circle" size={32} color="#faad14" />
-            </View>
-            <Text style={styles.statNumber}>0</Text>
-            <Text style={styles.statLabel}>Chờ thanh toán</Text>
-          </View>
-        </View>
       </View>
+
+      {/* Today Appointments Component */}
+      <TodayAppointments />
 
       {/* Main Content */}
       <View style={styles.content}>
@@ -243,30 +230,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: COLORS.primary,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  statIconContainer: {
-    marginBottom: 8,
-  },
-  statNumber: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: COLORS.textLight,
-    textAlign: 'center',
   },
   content: {
     padding: 20,
