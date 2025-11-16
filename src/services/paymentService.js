@@ -5,6 +5,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URLS } from '../config/apiConfig';
+import { handleTokenExpired } from '../utils/authUtils';
 
 const PAYMENT_URL = API_URLS.payment;
 
@@ -39,13 +40,9 @@ paymentApi.interceptors.request.use(
 paymentApi.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
       // Token expired or invalid
-      try {
-        await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
-      } catch (e) {
-        console.error('Error clearing storage:', e);
-      }
+      await handleTokenExpired();
     }
     return Promise.reject(error);
   }

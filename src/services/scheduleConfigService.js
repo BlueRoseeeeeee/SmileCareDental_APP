@@ -4,6 +4,7 @@
  */
 import { SCHEDULE_URL } from '../config/apiConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { handleTokenExpired } from '../utils/authUtils';
 
 const scheduleConfigService = {
   // Lấy cấu hình hệ thống
@@ -18,6 +19,11 @@ const scheduleConfigService = {
           'Authorization': `Bearer ${token}`,
         },
       });
+      
+      // Handle token expiration
+      if (!response.ok && (response.status === 401 || response.status === 403)) {
+        await handleTokenExpired();
+      }
       
       const data = await response.json();
       return data;

@@ -4,6 +4,7 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SERVICE_URL } from '../config/apiConfig';
+import { handleTokenExpired } from '../utils/authUtils';
 
 const createServiceClient = () => {
   return {
@@ -21,6 +22,10 @@ const createServiceClient = () => {
       });
 
       if (!response.ok) {
+        // Handle token expiration
+        if (response.status === 401 || response.status === 403) {
+          await handleTokenExpired();
+        }
         const error = await response.json();
         throw new Error(error.message || 'API request failed');
       }

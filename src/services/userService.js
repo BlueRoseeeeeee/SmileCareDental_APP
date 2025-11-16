@@ -5,6 +5,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URLS } from '../config/apiConfig';
+import { handleTokenExpired } from '../utils/authUtils';
 
 const USER_API_URL = API_URLS.user;
 
@@ -41,6 +42,10 @@ const createUserClient = () => {
       const response = await fetch(url, fetchOptions);
       const data = await response.json();
       if (!response.ok) {
+        // Handle token expiration
+        if (response.status === 401 || response.status === 403) {
+          await handleTokenExpired();
+        }
         throw {
           response: {
             status: response.status,

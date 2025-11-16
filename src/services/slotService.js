@@ -4,6 +4,7 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SCHEDULE_URL } from '../config/apiConfig';
+import { handleTokenExpired } from '../utils/authUtils';
 
 const createSlotClient = () => {
   return {
@@ -23,6 +24,10 @@ const createSlotClient = () => {
       });
 
       if (!response.ok) {
+        // Handle token expiration
+        if (response.status === 401 || response.status === 403) {
+          await handleTokenExpired();
+        }
         const error = await response.json();
         throw new Error(error.message || 'API request failed');
       }
