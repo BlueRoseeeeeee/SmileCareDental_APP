@@ -1,9 +1,11 @@
 /**
+ * @author: HoTram
  * Root Layout with Authentication Context
  */
 
 import { Stack } from "expo-router";
 import { AuthProvider } from "../src/contexts/AuthContext";
+import ChatBox from "../src/components/ChatBox";
 
 export default function RootLayout() {
   return (
@@ -17,6 +19,7 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
       </Stack>
+      <ChatBox />
     </AuthProvider>
   );
 }
