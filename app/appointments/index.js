@@ -4,23 +4,23 @@
  * Logic: Hiển thị danh sách lịch khám, filter theo trạng thái, xem chi tiết, hủy lịch
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import dayjs from 'dayjs';
+import 'dayjs/locale/vi';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
   ActivityIndicator,
   Alert,
   Modal,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import appointmentService from '../../src/services/appointmentService';
-import dayjs from 'dayjs';
-import 'dayjs/locale/vi';
 
 dayjs.locale('vi');
 
@@ -236,7 +236,7 @@ export default function AppointmentsScreen() {
             size={18}
             color={COLORS.textLight}
           />
-          <Text style={styles.cardText}>{appointment.room}</Text>
+          <Text style={styles.cardText}>{appointment.room}{appointment.subroomName?(<Text style={{color:'gray'}}> - {appointment.subroomName}</Text>):null}</Text>
         </View>
 
         {/* Actions */}
@@ -313,12 +313,21 @@ export default function AppointmentsScreen() {
             </View>
 
             <ScrollView style={styles.modalBody}>
+            {/* Appointment Code */}
+              {selectedAppointment.appointmentCode && (
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Mã lịch khám:</Text>
+                  <Text style={[styles.detailValue, styles.codeText]}>
+                    {selectedAppointment.appointmentCode}
+                  </Text>
+                </View>
+              )}
               {/* Status */}
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Trạng thái:</Text>
                 {renderStatusBadge(selectedAppointment.status)}
               </View>
-
+              
               {/* Date */}
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Ngày khám:</Text>
@@ -335,7 +344,7 @@ export default function AppointmentsScreen() {
 
               {/* Dentist */}
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Bác sĩ:</Text>
+                <Text style={styles.detailLabel}>Nha sĩ:</Text>
                 <Text style={styles.detailValue}>
                   {selectedAppointment.dentist?.fullName}
                 </Text>
@@ -344,7 +353,13 @@ export default function AppointmentsScreen() {
               {/* Room */}
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Phòng khám:</Text>
-                <Text style={styles.detailValue}>{selectedAppointment.room}</Text>
+                <Text style={styles.detailValue}>
+  {selectedAppointment.room}
+  {selectedAppointment.subroomName ? (
+    <Text style={{ color: 'gray' }}> - {selectedAppointment.subroomName}</Text>
+  ) : null}
+</Text>
+
               </View>
 
               {/* Service */}
@@ -363,15 +378,7 @@ export default function AppointmentsScreen() {
                 </Text>
               </View>
 
-              {/* Appointment Code */}
-              {selectedAppointment.appointmentCode && (
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Mã lịch khám:</Text>
-                  <Text style={[styles.detailValue, styles.codeText]}>
-                    {selectedAppointment.appointmentCode}
-                  </Text>
-                </View>
-              )}
+              
             </ScrollView>
 
             {/* Modal Actions */}

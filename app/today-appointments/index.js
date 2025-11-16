@@ -203,7 +203,7 @@ export default function TodayAppointmentsScreen() {
         {/* Room */}
         <View style={styles.cardRow}>
           <Ionicons name="location-outline" size={18} color={COLORS.textLight} />
-          <Text style={styles.cardText}>{appointment.room}</Text>
+          <Text style={styles.cardText}>{appointment.room}{appointment.subroomName?(<Text style={{color:'grey'}}> - {appointment.subroomName}</Text>):null}</Text>
         </View>
 
         {/* Actions */}
@@ -272,7 +272,7 @@ export default function TodayAppointmentsScreen() {
 
               {/* Dentist */}
               <View style={styles.detailSection}>
-                <Text style={styles.detailLabel}>Bác sĩ</Text>
+                <Text style={styles.detailLabel}>Nha sĩ</Text>
                 <Text style={styles.detailValue}>
                   {selectedAppointment.dentist?.fullName}
                 </Text>
@@ -289,7 +289,7 @@ export default function TodayAppointmentsScreen() {
               {/* Room */}
               <View style={styles.detailSection}>
                 <Text style={styles.detailLabel}>Phòng khám</Text>
-                <Text style={styles.detailValue}>{selectedAppointment.room}</Text>
+                <Text style={styles.detailValue}>{selectedAppointment.room}{selectedAppointment.subroomName? (<Text style={{color:'gray'}}> - {selectedAppointment.subroomName}</Text>):null}</Text>
               </View>
 
               {/* Status */}
