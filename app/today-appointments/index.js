@@ -4,23 +4,23 @@
  * Logic: Hiển thị danh sách lịch khám trong ngày hôm nay, xem chi tiết, hủy lịch
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import dayjs from 'dayjs';
+import 'dayjs/locale/vi';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
   ActivityIndicator,
   Alert,
   Modal,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import appointmentService from '../../src/services/appointmentService';
-import dayjs from 'dayjs';
-import 'dayjs/locale/vi';
 
 dayjs.locale('vi');
 
@@ -280,8 +280,16 @@ export default function TodayAppointmentsScreen() {
               {/* Room */}
               <View style={styles.detailSection}>
                 <Text style={styles.detailLabel}>Phòng khám</Text>
-                <Text style={styles.detailValue}>{selectedAppointment.room}{selectedAppointment.subroomName? (<Text style={{color:'gray'}}> - {selectedAppointment.subroomName}</Text>):null}</Text>
+                <Text style={styles.detailValue}>{selectedAppointment.room}</Text>
               </View>
+
+              {/* buồng */}
+              {selectedAppointment.subroomName&&(
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailLabel}>Buồng:</Text>
+                  <Text style={styles.detailValue}>{selectedAppointment.subroomName}</Text>
+                </View>
+              )}
 
               {/* Status */}
               <View style={styles.detailSection}>

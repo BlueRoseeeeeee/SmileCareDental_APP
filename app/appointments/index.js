@@ -308,13 +308,19 @@ export default function AppointmentsScreen() {
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Phòng khám:</Text>
                 <Text style={styles.detailValue}>
-  {selectedAppointment.room}
-  {selectedAppointment.subroomName ? (
-    <Text style={{ color: 'gray' }}> - {selectedAppointment.subroomName}</Text>
-  ) : null}
-</Text>
+                    {selectedAppointment.room}
+                </Text>
 
               </View>
+
+              {/* Buồng */}
+              {selectedAppointment.subroomName&&(
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Buồng:</Text>
+                  <Text style={styles.detailValue}>{selectedAppointment.subroomName}</Text>
+                </View>
+              )
+              } 
 
               {/* Service */}
               <View style={styles.detailRow}>
