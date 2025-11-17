@@ -4,25 +4,26 @@
  * Logic: Hiển thị danh sách hóa đơn, filter, xem chi tiết, download PDF
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import dayjs from 'dayjs';
+import 'dayjs/locale/vi';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
   ActivityIndicator,
   Alert,
   Modal,
-  Linking,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
 import invoiceService from '../../src/services/invoiceService';
-import dayjs from 'dayjs';
-import 'dayjs/locale/vi';
 
 dayjs.locale('vi');
 
@@ -90,6 +91,11 @@ export default function InvoicesScreen() {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
   useEffect(() => {
     if (user?._id) {
@@ -99,7 +105,7 @@ export default function InvoicesScreen() {
 
   useEffect(() => {
     filterInvoices();
-  }, [selectedFilter, invoices]);
+  }, [selectedFilter, startDate, endDate, invoices]);
 
   const loadInvoices = async () => {
     try {
@@ -133,12 +139,30 @@ export default function InvoicesScreen() {
   }, []);
 
   const filterInvoices = () => {
-    if (selectedFilter === 'all') {
-      setFilteredInvoices(invoices);
-    } else {
-      const filtered = invoices.filter((inv) => inv.status === selectedFilter);
-      setFilteredInvoices(filtered);
+    let filtered = invoices;
+
+    // Filter by status
+    if (selectedFilter !== 'all') {
+      filtered = filtered.filter((inv) => inv.status === selectedFilter);
     }
+
+    // Filter by date range
+    if (startDate || endDate) {
+      filtered = filtered.filter((inv) => {
+        const invDate = dayjs(inv.createdAt);
+        if (startDate && endDate) {
+          return invDate.isAfter(dayjs(startDate).subtract(1, 'day')) && 
+                 invDate.isBefore(dayjs(endDate).add(1, 'day'));
+        } else if (startDate) {
+          return invDate.isAfter(dayjs(startDate).subtract(1, 'day'));
+        } else if (endDate) {
+          return invDate.isBefore(dayjs(endDate).add(1, 'day'));
+        }
+        return true;
+      });
+    }
+
+    setFilteredInvoices(filtered);
   };
 
   const handleViewDetail = async (invoice) => {
@@ -600,33 +624,136 @@ export default function InvoicesScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Filter Tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterContainer}
-        contentContainerStyle={styles.filterContent}
-      >
-        {FILTER_OPTIONS.map((option) => (
+      {/* Filter Section */}
+      <View style={styles.filterContainer}>
+        {/* Status Filter Row */}
+        <Text style={styles.filterLabel}>Trạng thái:</Text>
+        <TouchableOpacity
+          style={styles.filterDropdownFull}
+          onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
+        >
+          <Text style={styles.filterDropdownText} numberOfLines={1}>
+            {FILTER_OPTIONS.find((opt) => opt.value === selectedFilter)?.label || 'Tất cả'}
+          </Text>
+          <Ionicons 
+            name={filterDropdownVisible ? "chevron-up" : "chevron-down"} 
+            size={18} 
+            color={COLORS.text} 
+          />
+        </TouchableOpacity>
+
+        {/* Date Range Filter Row */}
+        <Text style={[styles.filterLabel, { marginTop: 12 }]}>Thời gian:</Text>
+        <View style={styles.dateRow}>
           <TouchableOpacity
-            key={option.value}
-            style={[
-              styles.filterTab,
-              selectedFilter === option.value && styles.filterTabActive,
-            ]}
-            onPress={() => setSelectedFilter(option.value)}
+            style={styles.datePickerHalf}
+            onPress={() => setShowStartDatePicker(true)}
           >
-            <Text
-              style={[
-                styles.filterTabText,
-                selectedFilter === option.value && styles.filterTabTextActive,
-              ]}
-            >
-              {option.label}
+            <Text style={styles.filterDropdownText} numberOfLines={1}>
+              {startDate ? dayjs(startDate).format('DD/MM/YYYY') : 'Từ ngày'}
             </Text>
+            <Ionicons name="calendar-outline" size={18} color={COLORS.text} />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+
+          <TouchableOpacity
+            style={styles.datePickerHalf}
+            onPress={() => setShowEndDatePicker(true)}
+          >
+            <Text style={styles.filterDropdownText} numberOfLines={1}>
+              {endDate ? dayjs(endDate).format('DD/MM/YYYY') : 'Đến ngày'}
+            </Text>
+            <Ionicons name="calendar-outline" size={18} color={COLORS.text} />
+          </TouchableOpacity>
+
+          {/* Clear Date Button */}
+          {(startDate || endDate) && (
+            <TouchableOpacity
+              style={styles.clearDateButton}
+              onPress={() => {
+                setStartDate(null);
+                setEndDate(null);
+              }}
+            >
+              <Ionicons name="close-circle" size={20} color={COLORS.error} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Status Dropdown Modal */}
+      <Modal
+        visible={filterDropdownVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setFilterDropdownVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.dropdownOverlay}
+          activeOpacity={1}
+          onPress={() => setFilterDropdownVisible(false)}
+        >
+          <View style={[styles.dropdownMenuModal, { top: 170, left: 16, right: 16 }]}>
+            <ScrollView style={styles.dropdownScroll}>
+              {FILTER_OPTIONS.map((option, index) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.dropdownItem,
+                    selectedFilter === option.value && styles.dropdownItemActive,
+                    index === FILTER_OPTIONS.length - 1 && { borderBottomWidth: 0 },
+                  ]}
+                  onPress={() => {
+                    setSelectedFilter(option.value);
+                    setFilterDropdownVisible(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.dropdownItemText,
+                      selectedFilter === option.value && styles.dropdownItemTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  {selectedFilter === option.value && (
+                    <Ionicons name="checkmark" size={20} color={COLORS.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Start Date Picker */}
+      {showStartDatePicker && (
+        <DateTimePicker
+          value={startDate || new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={(event, selectedDate) => {
+            setShowStartDatePicker(Platform.OS === 'ios');
+            if (selectedDate) {
+              setStartDate(selectedDate);
+            }
+          }}
+        />
+      )}
+
+      {/* End Date Picker */}
+      {showEndDatePicker && (
+        <DateTimePicker
+          value={endDate || new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={(event, selectedDate) => {
+            setShowEndDatePicker(Platform.OS === 'ios');
+            if (selectedDate) {
+              setEndDate(selectedDate);
+            }
+          }}
+        />
+      )}
 
       {/* Invoices List */}
       <ScrollView
@@ -701,29 +828,94 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-  },
-  filterContent: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    gap: 8,
   },
-  filterTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+  filterLabel: {
+    fontSize: 13,
+    color: COLORS.textLight,
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  filterDropdownFull: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
     backgroundColor: COLORS.background,
-    marginRight: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 4,
   },
-  filterTabActive: {
-    backgroundColor: COLORS.primary,
+  dateRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
   },
-  filterTabText: {
+  datePickerHalf: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 4,
+  },
+  filterDropdownText: {
+    flex: 1,
     fontSize: 14,
     color: COLORS.text,
     fontWeight: '500',
   },
-  filterTabTextActive: {
-    color: COLORS.white,
+  clearDateButton: {
+    padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  dropdownMenuModal: {
+    position: 'absolute',
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  dropdownScroll: {
+    flexGrow: 0,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  dropdownItemActive: {
+    backgroundColor: COLORS.primary + '10',
+  },
+  dropdownItemText: {
+    fontSize: 15,
+    color: COLORS.text,
+  },
+  dropdownItemTextActive: {
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   listContainer: {
     flex: 1,
