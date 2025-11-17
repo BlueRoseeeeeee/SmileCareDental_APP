@@ -32,6 +32,32 @@ const scheduleConfigService = {
       throw error;
     }
   },
+
+  // Lấy danh sách ngày nghỉ lễ
+  getHolidays: async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      
+      const response = await fetch(`${SCHEDULE_URL}/schedule/config/holidays`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      // Handle token expiration
+      if (!response.ok && (response.status === 401 || response.status === 403)) {
+        await handleTokenExpired();
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching holidays:', error);
+      throw error;
+    }
+  },
 };
 
 export default scheduleConfigService;

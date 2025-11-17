@@ -5,10 +5,11 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import TodayAppointments from '../../src/components/TodayAppointments';
 import { useAuth } from '../../src/contexts/AuthContext';
+import scheduleConfigService from '../../src/services/scheduleConfigService';
 
 const COLORS = {
   primary: '#2596be',
@@ -24,7 +25,96 @@ const COLORS = {
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
-  const [showMenu, setShowMenu] = React.useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [workingHours, setWorkingHours] = useState([]);
+  const [workingDaysText, setWorkingDaysText] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchWorkingInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchWorkingInfo = async () => {
+    try {
+      setLoading(true);
+      await Promise.all([fetchWorkingHours(), fetchWorkingDays()]);
+    } catch (error) {
+      console.error('Error fetching working info:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchWorkingHours = async () => {
+    try {
+      const response = await scheduleConfigService.getConfig();
+      if (response.success && response.data) {
+        const config = response.data;
+        const activeShifts = [];
+
+        if (config.morningShift?.isActive) {
+          activeShifts.push({
+            name: config.morningShift.name,
+            time: `${config.morningShift.startTime} - ${config.morningShift.endTime}`
+          });
+        }
+        if (config.afternoonShift?.isActive) {
+          activeShifts.push({
+            name: config.afternoonShift.name,
+            time: `${config.afternoonShift.startTime} - ${config.afternoonShift.endTime}`
+          });
+        }
+        if (config.eveningShift?.isActive) {
+          activeShifts.push({
+            name: config.eveningShift.name,
+            time: `${config.eveningShift.startTime} - ${config.eveningShift.endTime}`
+          });
+        }
+
+        setWorkingHours(activeShifts);
+      }
+    } catch (error) {
+      console.error('Error fetching working hours:', error);
+      setWorkingHours([]);
+    }
+  };
+
+  const fetchWorkingDays = async () => {
+    try {
+      const response = await scheduleConfigService.getHolidays();
+      if (response.success && response.data) {
+        const holidays = response.data.holidays || [];
+        
+        const workingDays = holidays
+          .filter(h => h.isRecurring === true && h.isActive === false)
+          .map(h => h.dayOfWeek)
+          .sort((a, b) => a - b);
+
+        const dayNames = {
+          1: 'Chủ Nhật',
+          2: 'Thứ Hai', 
+          3: 'Thứ Ba',
+          4: 'Thứ Tư',
+          5: 'Thứ Năm',
+          6: 'Thứ Sáu',
+          7: 'Thứ Bảy'
+        };
+
+        if (workingDays.length === 0) {
+          setWorkingDaysText('Phòng khám đang trong trạng thái đóng cửa...');
+        } else if (workingDays.length === 7) {
+          setWorkingDaysText('Làm việc tất cả các ngày trong tuần');
+        } else {
+          const workingDayNames = workingDays.map(d => dayNames[d]);
+          setWorkingDaysText(`Làm việc vào các ngày: ${workingDayNames.join(', ')}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching working days:', error);
+      setWorkingDaysText('');
+    }
+  };
 
   const handleLogout = async () => {
     Alert.alert(
@@ -174,13 +264,54 @@ export default function HomeScreen() {
         <View style={styles.infoCard}>
           <View style={styles.infoHeader}>
             <Ionicons name="information-circle" size={24} color={COLORS.primary} />
-            <Text style={styles.infoTitle}>SmileCare Dental Clinic</Text>
+            <Text style={styles.infoTitle}>SmileCare Dental</Text>
           </View>
-          <Text style={styles.infoSubtitle}>Chăm sóc nụ cười của bạn</Text>
+          
           <View style={styles.infoRow}>
-            <Ionicons name="call" size={16} color={COLORS.textLight} />
-            <Text style={styles.infoText}>Hotline: 1900-xxxx</Text>
+            <Ionicons name="location" size={20} color={COLORS.primary} style={styles.infoIcon} />
+            <Text style={styles.infoText}>Nguyễn Văn Bảo, Gò Vấp, thành phố Hồ Chí Minh</Text>
           </View>
+
+          <View style={styles.infoRow}>
+            <Ionicons name="mail" size={18} color={COLORS.primary} style={styles.infoIcon} />
+            <Text style={styles.infoText}>smilecare.dental@gmail.com</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Ionicons name="call" size={18} color={COLORS.primary} style={styles.infoIcon} />
+            <Text style={styles.infoTextBold}>HOTLINE: 190000010</Text>
+          </View>
+
+          <View style={styles.infoDivider} />
+
+          <Text style={styles.infoSectionTitle}>LỊCH LÀM VIỆC</Text>
+
+          {loading ? (
+            <ActivityIndicator size="small" color={COLORS.primary} style={styles.loader} />
+          ) : (
+            <>
+              {workingHours.length > 0 ? (
+                workingHours.map((shift, index) => (
+                  <View key={index} style={styles.infoRow}>
+                    <Ionicons name="time" size={18} color={COLORS.primary} style={styles.infoIcon} />
+                    <Text style={styles.infoText}>{shift.name}: {shift.time}</Text>
+                  </View>
+                ))
+              ) : (
+                <View style={styles.infoRow}>
+                  <Ionicons name="time" size={18} color={COLORS.primary} style={styles.infoIcon} />
+                  <Text style={styles.infoText}>Phòng khám đang trong trạng thái đóng cửa...</Text>
+                </View>
+              )}
+
+              {workingDaysText && (
+                <View style={[styles.infoRow, styles.infoRowMultiline]}>
+                  <Ionicons name="calendar" size={18} color={COLORS.primary} style={styles.infoIcon} />
+                  <Text style={[styles.infoText, styles.infoTextFlex]}>{workingDaysText}</Text>
+                </View>
+              )}
+            </>
+          )}
         </View>
       </View>
     </ScrollView>
@@ -288,27 +419,54 @@ const styles = StyleSheet.create({
   infoHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   infoTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.text,
+    color: '#313b79',
     marginLeft: 8,
-  },
-  infoSubtitle: {
-    fontSize: 14,
-    color: COLORS.textLight,
-    marginBottom: 12,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    marginBottom: 12,
+  },
+  infoRowMultiline: {
+    alignItems: 'flex-start',
+  },
+  infoIcon: {
+    marginRight: 8,
+    marginTop: 2,
   },
   infoText: {
     fontSize: 14,
     color: COLORS.textLight,
+    flex: 0,
+    padding:0 5 0 0,
+  },
+  infoTextFlex: {
+    flex: 1,
+    flexWrap: 'wrap',
+  },
+  infoTextBold: {
+    fontSize: 14,
+    color: 'red',
+    fontWeight: '600',
+  },
+  infoDivider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginVertical: 16,
+  },
+  infoSectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  loader: {
+    marginVertical: 12,
   },
   menuDropdown: {
     position: 'absolute',
