@@ -59,14 +59,25 @@ const FILTER_OPTIONS = [
   { value: 'cancelled', label: 'Đã hủy' },
 ];
 
+const DATE_FILTER_OPTIONS = [
+  { value: 'all', label: 'Tất cả' },
+  { value: 'today', label: 'Hôm nay' },
+  { value: 'thisWeek', label: 'Tuần này' },
+  { value: 'thisMonth', label: 'Tháng này' },
+  { value: 'lastMonth', label: 'Tháng trước' },
+];
+
 export default function AppointmentsScreen() {
   const [appointments, setAppointments] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [selectedDateFilter, setSelectedDateFilter] = useState('all');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
+  const [dateFilterDropdownVisible, setDateFilterDropdownVisible] = useState(false);
 
   useEffect(() => {
     loadAppointments();
@@ -74,7 +85,7 @@ export default function AppointmentsScreen() {
 
   useEffect(() => {
     filterAppointments();
-  }, [selectedFilter, appointments]);
+  }, [selectedFilter, selectedDateFilter, appointments]);
 
   const loadAppointments = async () => {
     try {
@@ -121,14 +132,35 @@ export default function AppointmentsScreen() {
   }, []);
 
   const filterAppointments = () => {
-    if (selectedFilter === 'all') {
-      setFilteredAppointments(appointments);
-    } else {
-      const filtered = appointments.filter(
-        (apt) => apt.status === selectedFilter
-      );
-      setFilteredAppointments(filtered);
+    let filtered = appointments;
+
+    // Filter by status
+    if (selectedFilter !== 'all') {
+      filtered = filtered.filter((apt) => apt.status === selectedFilter);
     }
+
+    // Filter by date
+    if (selectedDateFilter !== 'all') {
+      const today = dayjs();
+      filtered = filtered.filter((apt) => {
+        const aptDate = dayjs(apt.date);
+        
+        switch (selectedDateFilter) {
+          case 'today':
+            return aptDate.isSame(today, 'day');
+          case 'thisWeek':
+            return aptDate.isSame(today, 'week');
+          case 'thisMonth':
+            return aptDate.isSame(today, 'month');
+          case 'lastMonth':
+            return aptDate.isSame(today.subtract(1, 'month'), 'month');
+          default:
+            return true;
+        }
+      });
+    }
+
+    setFilteredAppointments(filtered);
   };
 
   const handleViewDetail = (appointment) => {
@@ -380,33 +412,143 @@ export default function AppointmentsScreen() {
         <View style={styles.headerRight} />
       </View>
 
-      {/* Filter Tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterContainer}
-        contentContainerStyle={styles.filterContent}
-      >
-        {FILTER_OPTIONS.map((option) => (
-          <TouchableOpacity
-            key={option.value}
-            style={[
-              styles.filterTab,
-              selectedFilter === option.value && styles.filterTabActive,
-            ]}
-            onPress={() => setSelectedFilter(option.value)}
-          >
-            <Text
-              style={[
-                styles.filterTabText,
-                selectedFilter === option.value && styles.filterTabTextActive,
-              ]}
+      {/* Filter Section */}
+      <View style={styles.filterContainer}>
+        {/* Filter Row with 2 columns */}
+        <View style={styles.filterRow}>
+          {/* Status Filter */}
+          <View style={styles.filterColumn}>
+            <Text style={styles.filterLabel}>Trạng thái:</Text>
+            <TouchableOpacity
+              style={styles.filterDropdown}
+              onPress={() => {
+                setFilterDropdownVisible(!filterDropdownVisible);
+                setDateFilterDropdownVisible(false);
+              }}
             >
-              {option.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+              <Text style={styles.filterDropdownText} numberOfLines={1}>
+                {FILTER_OPTIONS.find((opt) => opt.value === selectedFilter)?.label || 'Tất cả'}
+              </Text>
+              <Ionicons 
+                name={filterDropdownVisible ? "chevron-up" : "chevron-down"} 
+                size={18} 
+                color={COLORS.text} 
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Date Filter */}
+          <View style={styles.filterColumn}>
+            <Text style={styles.filterLabel}>Thời gian:</Text>
+            <TouchableOpacity
+              style={styles.filterDropdown}
+              onPress={() => {
+                setDateFilterDropdownVisible(!dateFilterDropdownVisible);
+                setFilterDropdownVisible(false);
+              }}
+            >
+              <Text style={styles.filterDropdownText} numberOfLines={1}>
+                {DATE_FILTER_OPTIONS.find((opt) => opt.value === selectedDateFilter)?.label || 'Tất cả'}
+              </Text>
+              <Ionicons 
+                name={dateFilterDropdownVisible ? "chevron-up" : "chevron-down"} 
+                size={18} 
+                color={COLORS.text} 
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      {/* Status Dropdown Modal */}
+      <Modal
+        visible={filterDropdownVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setFilterDropdownVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.dropdownOverlay}
+          activeOpacity={1}
+          onPress={() => setFilterDropdownVisible(false)}
+        >
+          <View style={[styles.dropdownMenuModal, { top: 170, left: 16, right: '50%', marginRight: 6 }]}>
+            <ScrollView style={styles.dropdownScroll}>
+              {FILTER_OPTIONS.map((option, index) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.dropdownItem,
+                    selectedFilter === option.value && styles.dropdownItemActive,
+                    index === FILTER_OPTIONS.length - 1 && { borderBottomWidth: 0 },
+                  ]}
+                  onPress={() => {
+                    setSelectedFilter(option.value);
+                    setFilterDropdownVisible(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.dropdownItemText,
+                      selectedFilter === option.value && styles.dropdownItemTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  {selectedFilter === option.value && (
+                    <Ionicons name="checkmark" size={20} color={COLORS.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Date Dropdown Modal */}
+      <Modal
+        visible={dateFilterDropdownVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setDateFilterDropdownVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.dropdownOverlay}
+          activeOpacity={1}
+          onPress={() => setDateFilterDropdownVisible(false)}
+        >
+          <View style={[styles.dropdownMenuModal, { top: 170, left: '50%', right: 16, marginLeft: 6 }]}>
+            <ScrollView style={styles.dropdownScroll}>
+              {DATE_FILTER_OPTIONS.map((option, index) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.dropdownItem,
+                    selectedDateFilter === option.value && styles.dropdownItemActive,
+                    index === DATE_FILTER_OPTIONS.length - 1 && { borderBottomWidth: 0 },
+                  ]}
+                  onPress={() => {
+                    setSelectedDateFilter(option.value);
+                    setDateFilterDropdownVisible(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.dropdownItemText,
+                      selectedDateFilter === option.value && styles.dropdownItemTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  {selectedDateFilter === option.value && (
+                    <Ionicons name="checkmark" size={20} color={COLORS.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       {/* Appointments List */}
       <ScrollView
@@ -481,29 +623,78 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-  },
-  filterContent: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    gap: 8,
   },
-  filterTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+  filterRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  filterColumn: {
+    flex: 1,
+  },
+  filterLabel: {
+    fontSize: 13,
+    color: COLORS.textLight,
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  filterDropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
     backgroundColor: COLORS.background,
-    marginRight: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 4,
   },
-  filterTabActive: {
-    backgroundColor: COLORS.primary,
-  },
-  filterTabText: {
+  filterDropdownText: {
+    flex: 1,
     fontSize: 14,
     color: COLORS.text,
     fontWeight: '500',
   },
-  filterTabTextActive: {
-    color: COLORS.white,
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  dropdownMenuModal: {
+    position: 'absolute',
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  dropdownScroll: {
+    flexGrow: 0,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  dropdownItemActive: {
+    backgroundColor: COLORS.primary + '10',
+  },
+  dropdownItemText: {
+    fontSize: 15,
+    color: COLORS.text,
+  },
+  dropdownItemTextActive: {
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   listContainer: {
     flex: 1,
