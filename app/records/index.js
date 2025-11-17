@@ -4,24 +4,26 @@
  * Logic: Hiển thị danh sách hồ sơ bệnh án, xem chi tiết
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import dayjs from 'dayjs';
+import 'dayjs/locale/vi';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
   ActivityIndicator,
   Alert,
   Modal,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
 import recordService from '../../src/services/recordService';
-import dayjs from 'dayjs';
-import 'dayjs/locale/vi';
 
 dayjs.locale('vi');
 
@@ -77,6 +79,12 @@ export default function RecordsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
+  
+  // Filter states
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
   useEffect(() => {
     if (user?._id) {
@@ -127,6 +135,30 @@ export default function RecordsScreen() {
       setRefreshing(false);
     }
   };
+
+  const filterRecords = useCallback(() => {
+    let filtered = records;
+
+    // Filter by date range
+    if (startDate || endDate) {
+      filtered = filtered.filter(record => {
+        const recordDate = dayjs(record.createdAt);
+        const start = startDate ? dayjs(startDate).startOf('day') : null;
+        const end = endDate ? dayjs(endDate).endOf('day') : null;
+
+        if (start && end) {
+          return recordDate.isAfter(start) && recordDate.isBefore(end);
+        } else if (start) {
+          return recordDate.isAfter(start);
+        } else if (end) {
+          return recordDate.isBefore(end);
+        }
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [records, startDate, endDate]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -650,6 +682,75 @@ export default function RecordsScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Filter Section */}
+      <View style={styles.filterContainer}>
+        {/* Bộ lọc thời gian */}
+        <Text style={styles.filterLabel}>Thời gian:</Text>
+        <View style={styles.dateRow}>
+          <TouchableOpacity
+            style={styles.datePickerHalf}
+            onPress={() => setShowStartDatePicker(true)}
+          >
+            <Text style={styles.filterDropdownText} numberOfLines={1}>
+              {startDate ? dayjs(startDate).format('DD/MM/YYYY') : 'Từ ngày'}
+            </Text>
+            <Ionicons name="calendar-outline" size={18} color={COLORS.text} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.datePickerHalf}
+            onPress={() => setShowEndDatePicker(true)}
+          >
+            <Text style={styles.filterDropdownText} numberOfLines={1}>
+              {endDate ? dayjs(endDate).format('DD/MM/YYYY') : 'Đến ngày'}
+            </Text>
+            <Ionicons name="calendar-outline" size={18} color={COLORS.text} />
+          </TouchableOpacity>
+
+          {/* Clear Date Button */}
+          {(startDate || endDate) && (
+            <TouchableOpacity
+              style={styles.clearDateButton}
+              onPress={() => {
+                setStartDate(null);
+                setEndDate(null);
+              }}
+            >
+              <Ionicons name="close-circle" size={20} color={COLORS.error} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Date Pickers */}
+      {showStartDatePicker && (
+        <DateTimePicker
+          value={startDate || new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={(event, selectedDate) => {
+            setShowStartDatePicker(Platform.OS === 'ios');
+            if (selectedDate) {
+              setStartDate(selectedDate);
+            }
+          }}
+        />
+      )}
+
+      {showEndDatePicker && (
+        <DateTimePicker
+          value={endDate || new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={(event, selectedDate) => {
+            setShowEndDatePicker(Platform.OS === 'ios');
+            if (selectedDate) {
+              setEndDate(selectedDate);
+            }
+          }}
+        />
+      )}
+
       {/* Records List */}
       <ScrollView
         style={styles.listContainer}
@@ -667,8 +768,12 @@ export default function RecordsScreen() {
           renderEmptyState()
         ) : (
           <>
-            <Text style={styles.countText}>Tổng {records.length} hồ sơ</Text>
-            {records.map(renderRecordCard)}
+            <Text style={styles.countText}>
+              {filterRecords().length === records.length 
+                ? `Tổng ${records.length} hồ sơ` 
+                : `${filterRecords().length} / ${records.length} hồ sơ`}
+            </Text>
+            {filterRecords().map(renderRecordCard)}
           </>
         )}
       </ScrollView>
@@ -716,6 +821,48 @@ const styles = StyleSheet.create({
   },
   refreshButton: {
     padding: 8,
+  },
+  filterContainer: {
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  filterLabel: {
+    fontSize: 13,
+    color: COLORS.textLight,
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+  },
+  datePickerHalf: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 4,
+  },
+  filterDropdownText: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.text,
+    fontWeight: '500',
+  },
+  clearDateButton: {
+    padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   listContainer: {
     flex: 1,
