@@ -5,8 +5,8 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useState, useEffect } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import TodayAppointments from '../../src/components/TodayAppointments';
 import { useAuth } from '../../src/contexts/AuthContext';
 import scheduleConfigService from '../../src/services/scheduleConfigService';
@@ -443,7 +443,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textLight,
     flex: 0,
-    padding:0 5 0 0,
+    paddingTop: 0,
+  paddingRight: 10,
+  paddingBottom: 0,
+  paddingLeft: 0,
+
   },
   infoTextFlex: {
     flex: 1,
