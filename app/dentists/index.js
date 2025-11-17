@@ -89,7 +89,7 @@ export default function DentistsScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Đội ngũ nha sĩ</Text>
         <Text style={styles.headerSubtitle}>
-          Đội ngũ nha sĩ giàu kinh nghiệm, được đào tạo chuyên sâu
+          Đội ngũ nha sĩ tài giỏi giàu kinh nghiệm
         </Text>
       </View>
 
@@ -114,7 +114,7 @@ export default function DentistsScreen() {
               {/* Info Section */}
               <View style={styles.infoSection}>
                 <Text style={styles.dentistTitle}>
-                  Bà {dentist.fullName || dentist.name}
+                  NS. {dentist.name||dentist.fullName}
                 </Text>
                 
                 {/* Description Preview */}
@@ -168,11 +168,11 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: COLORS.white,
     padding: 24,
-    paddingTop: 60,
+    paddingTop: 25,
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: COLORS.secondary,
     marginBottom: 8,
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   dentistTitle: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: 'bold',
     color: COLORS.secondary,
     marginBottom: 8,
