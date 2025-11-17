@@ -10,6 +10,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import {
   ActivityIndicator,
   Alert,
@@ -252,7 +253,8 @@ export default function RecordsScreen() {
         {record.serviceAddOnName && (
           <View style={[styles.cardRow, { marginLeft: 24 }]}>
             <Text style={styles.cardSubValue} numberOfLines={1}>
-              + {record.serviceAddOnName}
+              <MaterialIcons name="subdirectory-arrow-right" size={15} color="grey" /> 
+              {record.serviceAddOnName}
             </Text>
           </View>
         )}
@@ -938,6 +940,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.textLight,
     flex: 1,
+    marginLeft:15
   },
   priceText: {
     color: COLORS.blue,
