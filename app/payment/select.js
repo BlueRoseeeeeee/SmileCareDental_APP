@@ -3,24 +3,24 @@
  * Payment Selection Screen - Chọn phương thức thanh toán
  */
 
-import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import dayjs from 'dayjs';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import paymentService from '../../src/services/paymentService';
 import scheduleConfigService from '../../src/services/scheduleConfigService';
 import { formatCurrency } from '../../src/utils/slotGrouping';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import dayjs from 'dayjs';
 
 const COLORS = {
   primary: '#2596be',
@@ -249,10 +249,20 @@ export default function PaymentSelectionScreen() {
                 <Text style={styles.infoLabel}>Phòng:</Text>
                 <Text style={styles.infoValue}>
                   {reservation.roomName}
-                  {reservation.subroomName && ` - ${reservation.subroomName}`}
                 </Text>
               </View>
             )}
+
+            {/* hiển thị tên buồng nếu có buồng */}
+            {reservation.subroomName&&(
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Buồng:</Text>
+                <Text style={styles.infoValue}>
+                  {reservation.subroomName}
+                </Text>
+              </View>
+            )
+            }
 
             <View style={styles.divider} />
 

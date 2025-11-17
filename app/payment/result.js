@@ -6,7 +6,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -71,7 +71,7 @@ export default function PaymentResultScreen() {
   };
 
   const handleNavigateToAppointments = () => {
-    router.replace('/(tabs)');
+    router.replace('/appointments');
   };
 
   const handleNavigateHome = () => {

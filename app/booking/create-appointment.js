@@ -148,7 +148,7 @@ export default function CreateAppointmentScreen() {
           fullName: user.fullName,
           phone: user.phone,
           email: user.email || null,
-          dateOfBirth: user.dateOfBirth
+          dateOfBirth: user.dateOfBirth.format
         },
         serviceId: service._id,
         serviceAddOnId: serviceAddOn?._id || null,
@@ -362,7 +362,7 @@ export default function CreateAppointmentScreen() {
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Ngày sinh:</Text>
               <Text style={styles.infoValue}>
-                {user?.dateOfBirth ? formatDisplayDate(user.dateOfBirth) : 'Chưa cập nhật'}
+                {user?.dateOfBirth ? dayjs(user.dateOfBirth).format('DD/MM/YYYY') : 'Chưa cập nhật'}
               </Text>
             </View>
           </View>
