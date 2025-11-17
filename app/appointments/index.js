@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '80%',
+    maxHeight: '95%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -676,9 +676,10 @@ const styles = StyleSheet.create({
   modalActions: {
     flexDirection: 'row',
     gap: 12,
-    padding: 20,
+    paddingBottom: 20,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
+    paddingTop:-10
   },
   modalCloseButton: {
     flex: 1,
