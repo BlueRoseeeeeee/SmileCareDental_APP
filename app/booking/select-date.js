@@ -357,10 +357,6 @@ export default function BookingSelectDateScreen() {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-          <Text style={styles.backButtonText}>Quay lại</Text>
-        </TouchableOpacity>
         
         {selectedDate && (
           <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
@@ -513,6 +509,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
     gap: 12,
+    paddingBottom: 30,
   },
   backButton: {
     flex: 1,

@@ -409,10 +409,6 @@ export default function BookingSelectAddOnScreen() {
 
       {/* Actions */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-          <Text style={styles.backButtonText}>Quay lại</Text>
-        </TouchableOpacity>
         
         {/* Chỉ hiển thị button "Bỏ qua/Tiếp theo" nếu KHÔNG có chỉ định addon cụ thể */}
         {!(treatmentIndications.length > 0 && treatmentIndications.some(ind => ind.serviceAddOnId)) && (
@@ -687,6 +683,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
     gap: 12,
+    paddingBottom: 30,
   },
   backButton: {
     flex: 1,

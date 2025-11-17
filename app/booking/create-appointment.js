@@ -670,6 +670,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
+    paddingBottom: 30,
   },
   submitButton: {
     flexDirection: 'row',

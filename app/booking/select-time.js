@@ -478,10 +478,6 @@ export default function BookingSelectTimeScreen() {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-          <Text style={styles.backButtonText}>Quay lại</Text>
-        </TouchableOpacity>
         
         {selectedSlotGroup && scheduleConfig && (
           <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>

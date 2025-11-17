@@ -3,24 +3,25 @@
  * Booking Select Dentist Screen - Chọn nha sĩ
  */
 
-import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
   Image,
+  ScrollView,
+  StyleSheet,
+  Text,
   TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
-import slotService from '../../src/services/slotService';
 import recordService from '../../src/services/recordService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import slotService from '../../src/services/slotService';
+import dayjs from 'dayjs';
 
 const COLORS = {
   primary: '#2596be',
@@ -314,41 +315,16 @@ export default function BookingSelectDentistScreen() {
                   <View style={styles.slotContainer}>
                     <Ionicons name="time-outline" size={16} color={COLORS.success} />
                     <Text style={styles.slotText}>
-                      Slot gần nhất: {dentist.nearestSlot.date} | {dentist.nearestSlot.startTime} - {dentist.nearestSlot.endTime}
+                      Slot gần nhất: {dayjs(dentist.nearestSlot.date).format('DD/MM/YYYY')} | {dentist.nearestSlot.startTime} - {dentist.nearestSlot.endTime}
                     </Text>
                   </View>
                 )}
-
-                {/* Working Days */}
-                <View style={styles.workingDaysContainer}>
-                  <Text style={styles.workingDaysLabel}>Lịch làm việc:</Text>
-                  {dentist.workingDays && dentist.workingDays.length > 0 ? (
-                    <View style={styles.workingDaysList}>
-                      {dentist.workingDays.map((day, index) => (
-                        <View key={index} style={styles.workingDayChip}>
-                          <Text style={styles.workingDayText}>
-                            {DAY_MAP[day] || day}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-                  ) : (
-                    <Text style={styles.workingDaysEmpty}>Chưa cập nhật</Text>
-                  )}
-                </View>
+                
               </TouchableOpacity>
             );
           })
         )}
       </ScrollView>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-          <Text style={styles.backButtonText}>Quay lại</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -557,12 +533,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.textLight,
     fontStyle: 'italic',
-  },
-  footer: {
-    backgroundColor: COLORS.white,
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
   },
   backButton: {
     flexDirection: 'row',
