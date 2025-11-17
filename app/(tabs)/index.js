@@ -159,6 +159,14 @@ export default function HomeScreen() {
     },
     {
       id: 3,
+      title: 'Đội ngũ nha sĩ',
+      icon: 'people-outline',
+      color: '#9254de',
+      bgColor: '#f9f0ff',
+      route: '/dentists',
+    },
+    {
+      id: 4,
       title: 'Hồ sơ',
       icon: 'document-text-outline',
       color: '#ff4d4f',
@@ -166,7 +174,7 @@ export default function HomeScreen() {
       route: '/records',
     },
     {
-      id: 4,
+      id: 5,
       title: 'Hóa đơn',
       icon: 'card-outline',
       color: '#faad14',
@@ -383,7 +391,7 @@ const styles = StyleSheet.create({
     width: '48%',
     backgroundColor: COLORS.white,
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     alignItems: 'center',
     marginBottom: 12,
     shadowColor: '#000',

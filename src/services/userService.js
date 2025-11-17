@@ -78,7 +78,7 @@ const userService = {
    */
   getPublicDentists: async () => {
     try {
-      const response = await userClient.get('/user/dentists/public');
+      const response = await userClient.get('/user/public/dentists');
       return response.data;
     } catch (error) {
       console.error('Get public dentists error:', error);
