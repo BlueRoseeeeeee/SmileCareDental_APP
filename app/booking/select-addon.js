@@ -3,21 +3,21 @@
  * Booking Select AddOn Screen - Chọn gói dịch vụ
  */
 
-import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import recordService from '../../src/services/recordService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const COLORS = {
   primary: '#2596be',
@@ -41,118 +41,15 @@ const formatPrice = (price) => {
   }).format(price);
 };
 
-// Format date range
-const formatDateRange = (startDate, endDate) => {
-  const start = new Date(startDate).toLocaleDateString('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-  });
-  const end = new Date(endDate).toLocaleDateString('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-  });
-  return `${start} - ${end}`;
-};
-
-// Get price schedule info
-const getPriceScheduleInfo = (priceSchedules = [], basePrice) => {
-  if (!priceSchedules || priceSchedules.length === 0) {
-    return {
-      effectivePrice: basePrice,
-      hasActiveSchedule: false,
-      hasUpcomingSchedules: false,
-      activeSchedule: null,
-      upcomingSchedules: [],
-    };
-  }
-
-  const now = new Date();
-  const activeSchedules = priceSchedules
-    .filter(s => s.isActive && new Date(s.startDate) <= now && new Date(s.endDate) >= now)
-    .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
-
-  const upcomingSchedules = priceSchedules
-    .filter(s => s.isActive && new Date(s.startDate) > now)
-    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-
-  const activeSchedule = activeSchedules[0] || null;
-  const effectivePrice = activeSchedule ? activeSchedule.price : basePrice;
-
-  return {
-    effectivePrice,
-    hasActiveSchedule: !!activeSchedule,
-    hasUpcomingSchedules: upcomingSchedules.length > 0,
-    activeSchedule,
-    upcomingSchedules,
-  };
-};
-
 // Price Display Component
 const PriceDisplay = ({ addon }) => {
-  const priceInfo = getPriceScheduleInfo(addon.priceSchedules, addon.price);
-  const { activeSchedule, upcomingSchedules, hasActiveSchedule, hasUpcomingSchedules } = priceInfo;
-
   return (
     <View style={styles.priceContainer}>
-      {/* Active schedule with discounted price */}
-      {hasActiveSchedule && (
-        <View style={styles.priceActiveSchedule}>
-          <View style={styles.priceRow}>
-            <Ionicons name="pricetag" size={16} color={COLORS.error} />
-            <Text style={styles.priceOld}>{formatPrice(addon.price)}</Text>
-          </View>
-          <View style={styles.priceRow}>
-            <Text style={styles.priceNew}>{formatPrice(activeSchedule.price)}</Text>
-            <View style={styles.discountBadge}>
-              <Text style={styles.discountText}>Đang giảm giá</Text>
-            </View>
-          </View>
-          <View style={styles.priceRow}>
-            <Ionicons name="calendar-outline" size={12} color={COLORS.textLight} />
-            <Text style={styles.priceDateRange}>
-              {formatDateRange(activeSchedule.startDate, activeSchedule.endDate)}
-            </Text>
-          </View>
-          {activeSchedule.reason && (
-            <Text style={styles.priceReason}>{activeSchedule.reason}</Text>
-          )}
-        </View>
-      )}
-
-      {/* Normal price (no active schedule) */}
-      {!hasActiveSchedule && (
-        <View style={styles.priceRow}>
-          <Ionicons name="cash-outline" size={16} color={COLORS.secondary} />
-          <Text style={styles.priceNormal}>{formatPrice(addon.price)}</Text>
-          <Text style={styles.priceUnit}>/ {addon.unit}</Text>
-        </View>
-      )}
-
-      {/* Upcoming schedules */}
-      {hasUpcomingSchedules && (
-        <View style={styles.upcomingContainer}>
-          <View style={styles.upcomingHeader}>
-            <Ionicons name="information-circle" size={14} color={COLORS.primary} />
-            <Text style={styles.upcomingTitle}>Lịch giá sắp tới:</Text>
-          </View>
-          {upcomingSchedules.slice(0, 2).map((schedule, idx) => (
-            <View key={schedule._id || idx} style={styles.upcomingItem}>
-              <Text style={styles.upcomingPrice}>{formatPrice(schedule.price)}</Text>
-              <Text style={styles.upcomingDate}>
-                ({formatDateRange(schedule.startDate, schedule.endDate)})
-              </Text>
-              {schedule.reason && (
-                <Text style={styles.upcomingReason}>{schedule.reason}</Text>
-              )}
-            </View>
-          ))}
-          {upcomingSchedules.length > 2 && (
-            <Text style={styles.upcomingMore}>
-              +{upcomingSchedules.length - 2} lịch giá khác...
-            </Text>
-          )}
-        </View>
-      )}
+      <View style={styles.priceRow}>
+        <Ionicons name="cash-outline" size={16} color={COLORS.secondary} />
+        <Text style={styles.priceNormal}>{formatPrice(addon.price)}</Text>
+        <Text style={styles.priceUnit}>/ {addon.unit}</Text>
+      </View>
     </View>
   );
 };
@@ -398,10 +295,12 @@ export default function BookingSelectAddOnScreen() {
 
               <PriceDisplay addon={addon} />
 
-              <View style={styles.durationRow}>
-                <Ionicons name="time-outline" size={16} color={COLORS.primary} />
-                <Text style={styles.durationText}>Thời gian: ~{addon.durationMinutes} phút</Text>
-              </View>
+              {addon.durationMinutes && (
+                <View style={styles.durationRow}>
+                  <Ionicons name="time-outline" size={16} color={COLORS.primary} />
+                  <Text style={styles.durationText}>Thời gian: ~{addon.durationMinutes} phút</Text>
+                </View>
+              )}
             </TouchableOpacity>
           );
         })}
@@ -572,49 +471,10 @@ const styles = StyleSheet.create({
   priceContainer: {
     marginBottom: 12,
   },
-  priceActiveSchedule: {
-    backgroundColor: '#fff1f0',
-    padding: 12,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.error,
-  },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 4,
-  },
-  priceOld: {
-    fontSize: 14,
-    color: COLORS.textLight,
-    textDecorationLine: 'line-through',
-  },
-  priceNew: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.error,
-  },
-  discountBadge: {
-    backgroundColor: COLORS.error,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  discountText: {
-    fontSize: 11,
-    color: COLORS.white,
-    fontWeight: '600',
-  },
-  priceDateRange: {
-    fontSize: 12,
-    color: COLORS.textLight,
-  },
-  priceReason: {
-    fontSize: 12,
-    color: COLORS.textLight,
-    fontStyle: 'italic',
-    marginTop: 4,
   },
   priceNormal: {
     fontSize: 18,
@@ -624,48 +484,6 @@ const styles = StyleSheet.create({
   priceUnit: {
     fontSize: 14,
     color: COLORS.textLight,
-  },
-  upcomingContainer: {
-    backgroundColor: '#e6f4ff',
-    padding: 10,
-    borderRadius: 6,
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: '#91d5ff',
-  },
-  upcomingHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 6,
-  },
-  upcomingTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.primary,
-  },
-  upcomingItem: {
-    marginBottom: 4,
-  },
-  upcomingPrice: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.primary,
-  },
-  upcomingDate: {
-    fontSize: 11,
-    color: COLORS.textLight,
-  },
-  upcomingReason: {
-    fontSize: 11,
-    color: COLORS.textLight,
-    fontStyle: 'italic',
-  },
-  upcomingMore: {
-    fontSize: 11,
-    color: COLORS.textLight,
-    fontStyle: 'italic',
-    marginTop: 4,
   },
   durationRow: {
     flexDirection: 'row',

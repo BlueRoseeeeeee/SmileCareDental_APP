@@ -20,6 +20,7 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import serviceService from '../../src/services/serviceService';
 import recordService from '../../src/services/recordService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const COLORS = {
   primary: '#2596be',
@@ -279,7 +280,7 @@ export default function BookingSelectServiceScreen() {
                 onPress={() => handleSelectService(service)}
               >
                 <View style={styles.serviceHeader}>
-                  <Ionicons name="medical" size={24} color={COLORS.secondary} />
+                 <MaterialCommunityIcons name="tooth-outline" size={24} color="black" />
                   <View style={styles.serviceTitleContainer}>
                     <Text style={styles.serviceName}>{service.name}</Text>
                     <View style={styles.serviceTags}>
