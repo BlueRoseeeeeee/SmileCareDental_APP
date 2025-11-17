@@ -393,8 +393,8 @@ export default function CreateAppointmentScreen() {
         <View style={styles.totalCard}>
           <View style={styles.totalRow}>
             <View style={styles.totalLabelContainer}>
-              <Ionicons name="cash-outline" size={24} color={COLORS.success} />
-              <Text style={styles.totalLabel}>Tiền cọc (phải thanh toán):</Text>
+              <Ionicons name="cash-outline" size={13} color={COLORS.success} />
+              <Text style={styles.totalLabel}>Tiền cọc (phải thanh toán): </Text>
             </View>
             <Text style={styles.totalAmount}>{formatCurrency(depositAmount)} VNĐ</Text>
           </View>
@@ -628,12 +628,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   totalLabel: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 'bold',
     color: COLORS.text,
   },
   totalAmount: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: 'bold',
     color: COLORS.discount,
   },
