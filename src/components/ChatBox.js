@@ -3,28 +3,28 @@
  * @author: HoTram
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import dayjs from 'dayjs';
+import * as ImagePicker from 'expo-image-picker';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  Image,
-  Alert,
   ActivityIndicator,
-  Modal,
-  PanResponder,
+  Alert,
   Animated,
   Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  PanResponder,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import chatbotService from '../services/chatbotService';
-import dayjs from 'dayjs';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -419,7 +419,7 @@ export default function ChatBox() {
 
   const renderWelcomeScreen = () => (
     <View style={styles.welcomeContainer}>
-      <Ionicons name="chatbot" size={80} color={COLORS.blue} />
+      <Image source={require('../../assets/icon/robot-tuvan-dethuong.png')} style={{width:250, height:210}}/>
       <Text style={styles.welcomeTitle}>Chào bạn! 👋</Text>
       <Text style={styles.welcomeText}>
         Tôi là SmileCare AI, trợ lý ảo của phòng khám nha khoa SmileCare.
@@ -472,7 +472,7 @@ export default function ChatBox() {
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={styles.headerAvatar}>
-              <Ionicons name="chatbot" size={24} color={COLORS.white} />
+              <Image source={require('../../assets/icon/robot_cute.png')} style={{width:60, height:60}}/>
             </View>
             <View>
               <Text style={styles.headerTitle}>SmileCare AI</Text>
@@ -651,7 +651,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 15,
     paddingBottom: 16,
     backgroundColor: COLORS.primary,
   },
