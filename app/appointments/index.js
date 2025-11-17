@@ -136,41 +136,6 @@ export default function AppointmentsScreen() {
     setDetailModalVisible(true);
   };
 
-  const handleCancelAppointment = (appointment) => {
-    Alert.alert(
-      'Xác nhận hủy lịch khám',
-      `Bạn có chắc chắn muốn hủy lịch khám ngày ${dayjs(appointment.date).format('DD/MM/YYYY')} lúc ${appointment.time}?`,
-      [
-        {
-          text: 'Đóng',
-          style: 'cancel',
-        },
-        {
-          text: 'Xác nhận',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const response = await appointmentService.cancelAppointment(
-                appointment._id,
-                'Bệnh nhân hủy từ ứng dụng'
-              );
-
-              if (response.success) {
-                Alert.alert('Thành công', 'Đã hủy lịch khám thành công');
-                loadAppointments();
-              } else {
-                Alert.alert('Lỗi', response.message || 'Hủy lịch khám thất bại');
-              }
-            } catch (error) {
-              console.error('❌ Cancel appointment error:', error);
-              Alert.alert('Lỗi', 'Không thể hủy lịch khám');
-            }
-          },
-        },
-      ]
-    );
-  };
-
   const renderStatusBadge = (status) => {
     const config = STATUS_CONFIG[status] || {
       color: COLORS.textLight,
@@ -251,17 +216,6 @@ export default function AppointmentsScreen() {
             </Text>
           </TouchableOpacity>
 
-          {canCancel && (
-            <TouchableOpacity
-              style={[styles.actionButton, styles.cancelButton]}
-              onPress={() => handleCancelAppointment(appointment)}
-            >
-              <Ionicons name="close-circle-outline" size={18} color={COLORS.error} />
-              <Text style={[styles.actionButtonText, { color: COLORS.error }]}>
-                Hủy
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
       </View>
     );
@@ -390,19 +344,6 @@ export default function AppointmentsScreen() {
                 <Text style={styles.modalCloseButtonText}>Đóng</Text>
               </TouchableOpacity>
 
-              {canCancel && (
-                <TouchableOpacity
-                  style={styles.modalCancelButton}
-                  onPress={() => {
-                    setDetailModalVisible(false);
-                    setTimeout(() => {
-                      handleCancelAppointment(selectedAppointment);
-                    }, 300);
-                  }}
-                >
-                  <Text style={styles.modalCancelButtonText}>Hủy lịch</Text>
-                </TouchableOpacity>
-              )}
             </View>
           </View>
         </View>

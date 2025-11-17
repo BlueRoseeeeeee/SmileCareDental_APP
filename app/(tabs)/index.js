@@ -3,12 +3,12 @@
  * @author: HoTram
  */
 
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
-import { router } from 'expo-router';
-import { useAuth } from '../../src/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React from 'react';
+import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import TodayAppointments from '../../src/components/TodayAppointments';
+import { useAuth } from '../../src/contexts/AuthContext';
 
 const COLORS = {
   primary: '#2596be',
@@ -233,6 +233,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+    marginTop: -15,
   },
   sectionTitle: {
     fontSize: 18,

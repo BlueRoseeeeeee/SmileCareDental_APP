@@ -218,15 +218,6 @@ export default function TodayAppointmentsScreen() {
             </Text>
           </TouchableOpacity>
 
-          {canCancel && (
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => handleCancelAppointment(appointment)}
-            >
-              <Ionicons name="close-circle-outline" size={18} color={COLORS.red} />
-              <Text style={[styles.actionText, { color: COLORS.red }]}>Hủy lịch</Text>
-            </TouchableOpacity>
-          )}
         </View>
       </View>
     );
