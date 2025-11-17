@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useAuth } from '../../src/contexts/AuthContext';
 import recordService from '../../src/services/recordService';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const COLORS = {
   primary: '#2596be',
@@ -283,7 +284,7 @@ export default function BookingSelectAddOnScreen() {
               disabled={isDisabled}
             >
               <View style={styles.addonHeader}>
-                <Ionicons name="cube" size={20} color={COLORS.secondary} />
+               <MaterialCommunityIcons name="tooth-outline" size={24} color={COLORS.secondary} />
                 <Text style={styles.addonName}>{addon.name}</Text>
                 {isIndicated && (
                   <View style={styles.indicatedBadge}>
