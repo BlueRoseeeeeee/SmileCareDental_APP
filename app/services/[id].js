@@ -6,15 +6,15 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
   ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import serviceService from '../../src/services/serviceService';
 
@@ -121,25 +121,13 @@ export default function ServiceAddOnsScreen() {
       </View>
 
       {/* Service Info Card */}
-      <View style={styles.serviceInfoCard}>
-        <View style={[
-          styles.typeBadge,
-          { backgroundColor: getServiceTypeColor(service.type) + '20' }
-        ]}>
-          <Text style={[
-            styles.typeBadgeText,
-            { color: getServiceTypeColor(service.type) }
-          ]}>
-            {translateServiceType(service.type)}
-          </Text>
-        </View>
-        
-        {service.description && (
+      {service.description && (
+        <View style={styles.serviceInfoCard}>
           <Text style={styles.serviceDescription}>
             {service.description}
           </Text>
-        )}
-      </View>
+        </View>
+      )}
 
       {/* Add-Ons List */}
       {activeAddOns.length > 0 ? (
@@ -169,6 +157,19 @@ export default function ServiceAddOnsScreen() {
 
               {/* Info */}
               <View style={styles.addOnInfo}>
+                {/* Type Badge */}
+                <View style={[
+                  styles.typeBadge,
+                  { backgroundColor: getServiceTypeColor(service.type) + '20' }
+                ]}>
+                  <Text style={[
+                    styles.typeBadgeText,
+                    { color: getServiceTypeColor(service.type) }
+                  ]}>
+                    {translateServiceType(service.type)}
+                  </Text>
+                </View>
+
                 <Text style={styles.addOnName} numberOfLines={2}>
                   {addOn.name}
                 </Text>
@@ -306,7 +307,7 @@ const styles = StyleSheet.create({
   },
   addOnImageContainer: {
     width: 120,
-    height: 120,
+    height: 150,
     backgroundColor: COLORS.background,
   },
   addOnImage: {
