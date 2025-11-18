@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  TextInput,
 } from 'react-native';
 import serviceService from '../../src/services/serviceService';
 
@@ -33,6 +34,7 @@ export default function ServicesScreen() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchServices();
@@ -77,6 +79,13 @@ export default function ServicesScreen() {
     return type === 'exam' ? COLORS.exam : COLORS.treatment;
   };
 
+  const filteredServices = services.filter(service => {
+    if (!searchQuery.trim()) return true;
+    const name = (service.name || '').toLowerCase();
+    const query = searchQuery.toLowerCase();
+    return name.includes(query);
+  });
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -101,7 +110,24 @@ export default function ServicesScreen() {
         </Text>
       </View>
 
-      {services.length > 0 ? (
+      {/* Thanh tìm kiếm theo tên dịch vụ */}
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color={COLORS.textLight} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Tìm kiếm dịch vụ..."
+          placeholderTextColor={COLORS.textLight}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <Ionicons name="close-circle" size={20} color={COLORS.textLight} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {filteredServices.length > 0 ? (
         <View style={styles.listContainer}>
           {services.map((service) => (
             <TouchableOpacity
@@ -158,8 +184,10 @@ export default function ServicesScreen() {
         </View>
       ) : (
         <View style={styles.emptyContainer}>
-          <Ionicons name="medkit-outline" size={64} color={COLORS.textLight} />
-          <Text style={styles.emptyText}>Chưa có dịch vụ nào</Text>
+          <Ionicons name={searchQuery ? "search-outline" : "medkit-outline"} size={64} color={COLORS.textLight} />
+          <Text style={styles.emptyText}>
+            {searchQuery ? 'Không tìm thấy dịch vụ phù hợp' : 'Chưa có dịch vụ nào'}
+          </Text>
         </View>
       )}
     </ScrollView>
@@ -198,6 +226,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textLight,
     textAlign: 'center',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: COLORS.text,
+    padding: 0,
   },
   listContainer: {
     padding: 16,
