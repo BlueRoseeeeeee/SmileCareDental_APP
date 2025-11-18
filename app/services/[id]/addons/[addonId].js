@@ -173,12 +173,49 @@ export default function ServiceAddOnDetail() {
           {/* Name */}
           <Text style={styles.addOnName}>{addOn.name}</Text>
 
-          {/* Price */}
-          <View style={styles.priceContainer}>
-            <Text style={styles.priceLabel}>Giá dịch vụ:</Text>
-            <Text style={styles.priceValue}>
-              {(addOn.effectivePrice || addOn.basePrice || 0).toLocaleString('vi-VN')} VNĐ
-            </Text>
+          {/* Info Grid */}
+          <View style={styles.infoGrid}>
+            {/* Price */}
+            <View style={styles.infoItem}>
+              <Text style={styles.infoLabel}>Giá dịch vụ:</Text>
+              <Text style={styles.priceValue}>
+                {(addOn.effectivePrice || addOn.basePrice || 0).toLocaleString('vi-VN')} VNĐ
+              </Text>
+            </View>
+
+            {/* Unit */}
+            {addOn.unit && (
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Đơn vị:</Text>
+                <Text style={styles.infoValue}>{addOn.unit}</Text>
+              </View>
+            )}
+
+            {/* Duration */}
+            {addOn.durationMinutes && (
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Thời gian:</Text>
+                <Text style={styles.infoValue}>{addOn.durationMinutes} phút</Text>
+              </View>
+            )}
+
+            {/* Service Type */}
+            {addOn.serviceType && (
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Loại dịch vụ:</Text>
+                <Text style={styles.infoValue}>
+                  {addOn.serviceType === 'treatment' ? 'Điều trị' : addOn.serviceType === 'exam' ? 'Khám' : addOn.serviceType}
+                </Text>
+              </View>
+            )}
+
+            {/* Pre-exam Required */}
+            <View style={styles.infoItem}>
+              <Text style={styles.infoLabel}>Yêu cầu khám trước:</Text>
+              <Text style={styles.infoValue}>
+                {addOn.requiresPreExam ? 'Cần khám trước' : 'Không'}
+              </Text>
+            </View>
           </View>
 
           {/* YouTube Videos */}
@@ -409,8 +446,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.secondary,
-    paddingTop: 10,
-    paddingBottom: 16,
+    paddingTop: 25,
+    paddingBottom: 10,
     paddingHorizontal: 16,
   },
   backIconButton: {
@@ -449,22 +486,31 @@ const styles = StyleSheet.create({
     color: COLORS.secondary,
     marginBottom: 16,
   },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+  infoGrid: {
     backgroundColor: COLORS.background,
-    borderRadius: 8,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
   },
-  priceLabel: {
-    fontSize: 16,
+  infoItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  infoLabel: {
+    fontSize: 15,
     color: COLORS.text,
-    marginRight: 8,
+    fontWeight: '600',
+  },
+  infoValue: {
+    fontSize: 15,
+    color: COLORS.textLight,
   },
   priceValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.priceGreen,
   },
