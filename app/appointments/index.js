@@ -17,6 +17,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -48,6 +49,8 @@ const STATUS_CONFIG = {
   'checked-in': { color: COLORS.cyan, text: 'Đã check-in', icon: 'log-in-outline' },
   completed: { color: COLORS.green, text: 'Hoàn thành', icon: 'checkmark-done-outline' },
   cancelled: { color: COLORS.red, text: 'Đã hủy', icon: 'close-circle-outline' },
+  'pending-cancellation': { color: '#ff9800', text: 'Đang yêu cầu hủy', icon: 'alert-circle-outline' },
+  'no-show': { color: COLORS.textLight, text: 'Không đến', icon: 'remove-circle-outline' },
 };
 
 const FILTER_OPTIONS = [
@@ -57,6 +60,8 @@ const FILTER_OPTIONS = [
   { value: 'checked-in', label: 'Đã check-in' },
   { value: 'completed', label: 'Hoàn thành' },
   { value: 'cancelled', label: 'Đã hủy' },
+  { value: 'pending-cancellation', label: 'Đang yêu cầu hủy' },
+  { value: 'no-show', label: 'Không đến' },
 ];
 
 const DATE_FILTER_OPTIONS = [
@@ -78,6 +83,9 @@ export default function AppointmentsScreen() {
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
   const [dateFilterDropdownVisible, setDateFilterDropdownVisible] = useState(false);
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [appointmentToCancel, setAppointmentToCancel] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
 
   useEffect(() => {
     loadAppointments();
@@ -85,7 +93,7 @@ export default function AppointmentsScreen() {
 
   useEffect(() => {
     filterAppointments();
-  }, [selectedFilter, selectedDateFilter, appointments]);
+  }, [selectedFilter, selectedDateFilter, appointments, filterAppointments]);
 
   const loadAppointments = async () => {
     try {
@@ -131,7 +139,7 @@ export default function AppointmentsScreen() {
     loadAppointments();
   }, []);
 
-  const filterAppointments = () => {
+  const filterAppointments = useCallback(() => {
     let filtered = appointments;
 
     // Filter by status
@@ -161,11 +169,72 @@ export default function AppointmentsScreen() {
     }
 
     setFilteredAppointments(filtered);
+  }, [appointments, selectedFilter, selectedDateFilter]);
+
+  // ✅ Check if can request cancellation (>=24 hours before appointment)
+  const canRequestCancellation = (appointment) => {
+    if (appointment.status !== 'confirmed') {
+      return false;
+    }
+
+    const now = new Date();
+    const appointmentDateTime = new Date(appointment.appointmentDate || appointment.date);
+    
+    // Parse startTime (format: "HH:MM")
+    const startTime = appointment.startTime || appointment.time?.split(' - ')[0];
+    if (startTime) {
+      const [hours, minutes] = startTime.split(':').map(Number);
+      appointmentDateTime.setHours(hours, minutes, 0, 0);
+    }
+    
+    const timeDiff = appointmentDateTime - now;
+    const oneDayInMs = 24 * 60 * 60 * 1000; // 24 hours
+    
+    return timeDiff >= oneDayInMs;
   };
 
   const handleViewDetail = (appointment) => {
     setSelectedAppointment(appointment);
     setDetailModalVisible(true);
+  };
+
+  const handleRequestCancellation = (appointment) => {
+    setAppointmentToCancel(appointment);
+    setCancelReason('');
+    setCancelModalVisible(true);
+  };
+
+  const handleCancelSubmit = async () => {
+    try {
+      // Validate reason
+      if (!cancelReason || cancelReason.trim().length === 0) {
+        Alert.alert('Lỗi', 'Vui lòng nhập lý do hủy lịch khám');
+        return;
+      }
+      
+      if (cancelReason.trim().length < 10) {
+        Alert.alert('Lỗi', 'Lý do phải có ít nhất 10 ký tự');
+        return;
+      }
+      
+      const response = await appointmentService.requestCancellation(
+        appointmentToCancel._id,
+        cancelReason
+      );
+      
+      if (response.success) {
+        Alert.alert('Thành công', 'Đã gửi yêu cầu hủy lịch khám. Vui lòng chờ xác nhận từ phòng khám.');
+        setCancelModalVisible(false);
+        setAppointmentToCancel(null);
+        setCancelReason('');
+        loadAppointments();
+      } else {
+        Alert.alert('Lỗi', response.message || 'Không thể gửi yêu cầu hủy');
+      }
+    } catch (error) {
+      console.error('❌ Request cancellation error:', error);
+      Alert.alert('Lỗi', error.response?.data?.message || 'Gửi yêu cầu hủy thất bại');
+    }
   };
 
   const renderStatusBadge = (status) => {
@@ -186,9 +255,6 @@ export default function AppointmentsScreen() {
   };
 
   const renderAppointmentCard = (appointment) => {
-    const canCancel =
-      appointment.status === 'pending' || appointment.status === 'confirmed';
-
     return (
       <View key={appointment._id} style={styles.appointmentCard}>
         {/* Header - Date & Status */}
@@ -248,6 +314,17 @@ export default function AppointmentsScreen() {
             </Text>
           </TouchableOpacity>
 
+          {canRequestCancellation(appointment) && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.cancelButton]}
+              onPress={() => handleRequestCancellation(appointment)}
+            >
+              <Ionicons name="close-circle-outline" size={18} color={COLORS.error} />
+              <Text style={[styles.actionButtonText, { color: COLORS.error }]}>
+                Gửi yêu cầu hủy
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -273,10 +350,6 @@ export default function AppointmentsScreen() {
 
   const renderDetailModal = () => {
     if (!selectedAppointment) return null;
-
-    const canCancel =
-      selectedAppointment.status === 'pending' ||
-      selectedAppointment.status === 'confirmed';
 
     return (
       <Modal
@@ -311,7 +384,7 @@ export default function AppointmentsScreen() {
               {/* Status */}
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Trạng thái:</Text>
-                {renderStatusBadge(selectedAppointment.status)}
+                <Text>{renderStatusBadge(selectedAppointment.status)}</Text>
               </View>
               
               {/* Date */}
@@ -577,6 +650,116 @@ export default function AppointmentsScreen() {
 
       {/* Detail Modal */}
       {renderDetailModal()}
+
+      {/* Cancel Request Modal */}
+      <Modal
+        visible={cancelModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => {
+          setCancelModalVisible(false);
+          setAppointmentToCancel(null);
+          setCancelReason('');
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                <Ionicons name="close-circle-outline" size={20} /> Yêu cầu hủy lịch khám
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setCancelModalVisible(false);
+                  setAppointmentToCancel(null);
+                  setCancelReason('');
+                }}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody}>
+              {appointmentToCancel && (
+                <>
+                  {/* Appointment Info */}
+                  <View style={styles.cancelInfoContainer}>
+                    <Text style={styles.cancelInfoText}>Bạn đang yêu cầu hủy lịch khám:</Text>
+                    <View style={styles.cancelInfoBox}>
+                      <View style={styles.cancelInfoRow}>
+                        <Text style={styles.cancelInfoLabel}>Ngày:</Text>
+                        <Text style={styles.cancelInfoValue}>
+                          {dayjs(appointmentToCancel.date).format('DD/MM/YYYY')}
+                        </Text>
+                      </View>
+                      <View style={styles.cancelInfoRow}>
+                        <Text style={styles.cancelInfoLabel}>Giờ:</Text>
+                        <Text style={styles.cancelInfoValue}>{appointmentToCancel.time}</Text>
+                      </View>
+                      <View style={styles.cancelInfoRow}>
+                        <Text style={styles.cancelInfoLabel}>Bác sĩ:</Text>
+                        <Text style={styles.cancelInfoValue}>
+                          {appointmentToCancel.dentist?.fullName}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Reason Input */}
+                  <View style={styles.reasonContainer}>
+                    <Text style={styles.reasonLabel}>* Lý do hủy:</Text>
+                    <TextInput
+                      style={styles.reasonInput}
+                      placeholder="Vui lòng cho chúng tôi biết lý do bạn muốn hủy lịch khám..."
+                      placeholderTextColor={COLORS.textLight}
+                      multiline
+                      numberOfLines={4}
+                      maxLength={500}
+                      value={cancelReason}
+                      onChangeText={setCancelReason}
+                      textAlignVertical="top"
+                    />
+                    <Text style={styles.charCount}>{cancelReason.length}/500</Text>
+                  </View>
+
+                  {/* Warning */}
+                  <View style={styles.warningBox}>
+                    <Ionicons name="warning-outline" size={20} color="#ff9800" />
+                    <View style={styles.warningContent}>
+                      <Text style={styles.warningTitle}>Lưu ý</Text>
+                      <Text style={styles.warningText}>
+                        Yêu cầu hủy lịch sẽ được gửi đến phòng khám để xem xét. Bạn sẽ nhận được thông báo khi yêu cầu được xử lý.
+                      </Text>
+                    </View>
+                  </View>
+                </>
+              )}
+            </ScrollView>
+
+            {/* Modal Actions */}
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => {
+                  setCancelModalVisible(false);
+                  setAppointmentToCancel(null);
+                  setCancelReason('');
+                }}
+              >
+                <Text style={styles.modalCloseButtonText}>Đóng</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={handleCancelSubmit}
+              >
+                <Text style={styles.modalCancelButtonText}>Gửi yêu cầu</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -895,5 +1078,84 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.white,
+  },
+  cancelInfoContainer: {
+    marginBottom: 20,
+  },
+  cancelInfoText: {
+    fontSize: 14,
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  cancelInfoBox: {
+    backgroundColor: COLORS.background,
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.primary,
+  },
+  cancelInfoRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  cancelInfoLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    width: 80,
+  },
+  cancelInfoValue: {
+    fontSize: 14,
+    color: COLORS.text,
+    flex: 1,
+  },
+  reasonContainer: {
+    marginBottom: 20,
+  },
+  reasonLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  reasonInput: {
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: COLORS.text,
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  charCount: {
+    fontSize: 12,
+    color: COLORS.textLight,
+    textAlign: 'right',
+    marginTop: 4,
+  },
+  warningBox: {
+    flexDirection: 'row',
+    backgroundColor: '#fff3e0',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ffb74d',
+    gap: 12,
+  },
+  warningContent: {
+    flex: 1,
+  },
+  warningTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  warningText: {
+    fontSize: 13,
+    color: COLORS.text,
+    lineHeight: 18,
   },
 });
