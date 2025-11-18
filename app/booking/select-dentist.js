@@ -256,10 +256,9 @@ export default function BookingSelectDentistScreen() {
             const isExamDentist = examDentistId && dentist._id === examDentistId;
             
             return (
-              <TouchableOpacity
+              <View
                 key={dentist._id}
                 style={[styles.dentistCard, isExamDentist && styles.dentistCardExam]}
-                onPress={() => handleSelectDentist(dentist)}
               >
                 {/* Dentist Avatar & Info */}
                 <View style={styles.dentistHeader}>
@@ -319,8 +318,30 @@ export default function BookingSelectDentistScreen() {
                     </Text>
                   </View>
                 )}
+
+                {/* Action Buttons */}
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity 
+                    style={styles.viewDetailButton}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      router.push(`/dentists/${dentist._id}`);
+                    }}
+                  >
+                    <Ionicons name="information-circle-outline" size={18} color={COLORS.primary} />
+                    <Text style={styles.viewDetailButtonText}>Xem chi tiết</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.selectButton}
+                    onPress={() => handleSelectDentist(dentist)}
+                  >
+                    <Ionicons name="checkmark-circle" size={18} color={COLORS.white} />
+                    <Text style={styles.selectButtonText}>Chọn nha sỹ</Text>
+                  </TouchableOpacity>
+                </View>
                 
-              </TouchableOpacity>
+              </View>
             );
           })
         )}
@@ -504,6 +525,44 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.success,
     fontWeight: '600',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  viewDetailButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.white,
+    gap: 6,
+  },
+  viewDetailButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  selectButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: COLORS.primary,
+    gap: 6,
+  },
+  selectButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.white,
   },
   workingDaysContainer: {
     marginTop: 8,
