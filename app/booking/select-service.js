@@ -105,6 +105,18 @@ export default function BookingSelectServiceScreen() {
   const applyFilters = (search, type, source, allServices, recommendedServices) => {
     let filtered = allServices;
 
+    // 🆕 Lọc bỏ các service có serviceAddOns nhưng KHÔNG có addon nào active
+    filtered = filtered.filter(service => {
+      // Nếu service không có addons -> OK, giữ lại
+      if (!service.serviceAddOns || service.serviceAddOns.length === 0) {
+        return true;
+      }
+      
+      // Nếu có addons -> phải có ít nhất 1 addon isActive = true
+      const hasActiveAddons = service.serviceAddOns.some(addon => addon.isActive === true);
+      return hasActiveAddons;
+    });
+
     // Filter by source
     if (source === 'recommended' && recommendedServices.length > 0) {
       const recommendedIds = new Set(recommendedServices.map(s => s.serviceId.toString()));
@@ -140,6 +152,15 @@ export default function BookingSelectServiceScreen() {
   };
 
   const handleSelectService = async (service) => {
+    // 🆕 Kiểm tra nếu có serviceAddOns nhưng KHÔNG có addon nào isActive
+    if (service.serviceAddOns && service.serviceAddOns.length > 0) {
+      const hasActiveAddons = service.serviceAddOns.some(addon => addon.isActive === true);
+      if (!hasActiveAddons) {
+        Alert.alert('Thông báo', 'Dịch vụ này hiện không có gói phụ khả dụng. Vui lòng chọn dịch vụ khác.');
+        return;
+      }
+    }
+    
     // Lưu service vào AsyncStorage
     await AsyncStorage.setItem('booking_service', JSON.stringify(service));
     
