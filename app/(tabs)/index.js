@@ -159,6 +159,14 @@ export default function HomeScreen() {
     },
     {
       id: 3,
+      title: 'Dịch vụ',
+      icon: 'medkit-outline',
+      color: '#fa8c16',
+      bgColor: '#fff7e6',
+      route: '/services',
+    },
+    {
+      id: 4,
       title: 'Đội ngũ nha sĩ',
       icon: 'people-outline',
       color: '#9254de',
@@ -166,7 +174,7 @@ export default function HomeScreen() {
       route: '/dentists',
     },
     {
-      id: 4,
+      id: 5,
       title: 'Hồ sơ',
       icon: 'document-text-outline',
       color: '#ff4d4f',
@@ -174,7 +182,7 @@ export default function HomeScreen() {
       route: '/records',
     },
     {
-      id: 5,
+      id: 6,
       title: 'Hóa đơn',
       icon: 'card-outline',
       color: '#faad14',
