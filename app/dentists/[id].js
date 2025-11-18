@@ -6,15 +6,15 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Image,
   ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import userService from '../../src/services/userService';
@@ -204,7 +204,6 @@ export default function DentistDetail() {
                         style={styles.certificateImage}
                         resizeMode="contain"
                       />
-                      <Text style={styles.imageLabel}>Mặt trước</Text>
                     </View>
                   )}
 
@@ -215,7 +214,6 @@ export default function DentistDetail() {
                         style={styles.certificateImage}
                         resizeMode="contain"
                       />
-                      <Text style={styles.imageLabel}>Mặt sau</Text>
                     </View>
                   )}
                 </View>
@@ -304,8 +302,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 200,
     height: 200,
-    borderRadius: 100,
-    borderWidth: 4,
+    objectFit: 'contain',
     borderColor: COLORS.border,
   },
   avatarPlaceholder: {
