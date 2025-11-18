@@ -93,6 +93,16 @@ export default function BookingSelectAddOnScreen() {
         return;
       }
 
+      // 🆕 Kiểm tra xem có addon active nào không
+      const activeAddons = serviceData.serviceAddOns.filter(addon => addon.isActive === true);
+      if (activeAddons.length === 0) {
+        Alert.alert('Thông báo', 'Hiện tại không có gói dịch vụ phụ nào khả dụng, chuyển sang bước tiếp theo');
+        setTimeout(() => {
+          router.replace('/booking/select-dentist');
+        }, 1000);
+        return;
+      }
+
       // Check if service requires exam first and user has indications
       if (serviceData.requireExamFirst && user) {
         setLoading(true);
@@ -177,13 +187,25 @@ export default function BookingSelectAddOnScreen() {
     
     // If service has addons, save the longest one for slot grouping
     if (service.serviceAddOns && service.serviceAddOns.length > 0) {
-      const longestAddon = service.serviceAddOns.reduce((longest, addon) => {
-        return (addon.durationMinutes || 0) > (longest.durationMinutes || 0) ? addon : longest;
-      }, service.serviceAddOns[0]);
+      // 🔥 Filter only active addons
+      const activeAddons = service.serviceAddOns.filter(addon => addon.isActive === true);
       
-      await AsyncStorage.setItem('booking_serviceAddOn', JSON.stringify(longestAddon));
-      await AsyncStorage.setItem('booking_serviceAddOn_userSelected', 'false');
+      if (activeAddons.length > 0) {
+        const longestAddon = activeAddons.reduce((longest, addon) => {
+          return (addon.durationMinutes || 0) > (longest.durationMinutes || 0) ? addon : longest;
+        }, activeAddons[0]);
+        
+        await AsyncStorage.setItem('booking_serviceAddOn', JSON.stringify(longestAddon));
+        await AsyncStorage.setItem('booking_serviceAddOn_userSelected', 'false');
+        console.log('⏭️ No addon selected → Using longest ACTIVE addon for slot grouping:', longestAddon.name, longestAddon.durationMinutes, 'min');
+      } else {
+        // No active addons, clear addon selection
+        await AsyncStorage.removeItem('booking_serviceAddOn');
+        await AsyncStorage.removeItem('booking_serviceAddOn_userSelected');
+        console.log('⚠️ No active addons available');
+      }
     } else {
+      // Clear addon selection if no addons exist
       await AsyncStorage.removeItem('booking_serviceAddOn');
       await AsyncStorage.removeItem('booking_serviceAddOn_userSelected');
     }
