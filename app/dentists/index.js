@@ -14,6 +14,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -34,6 +35,7 @@ export default function DentistsScreen() {
   const [dentists, setDentists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchDentists();
@@ -75,6 +77,13 @@ export default function DentistsScreen() {
     return decoded.replace(/\s+/g, ' ').trim();
   };
 
+  const filteredDentists = dentists.filter(dentist => {
+    if (!searchQuery.trim()) return true;
+    const name = (dentist.name || dentist.fullName || '').toLowerCase();
+    const query = searchQuery.toLowerCase();
+    return name.includes(query);
+  });
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -99,9 +108,26 @@ export default function DentistsScreen() {
         </Text>
       </View>
 
-      {dentists.length > 0 ? (
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color={COLORS.textLight} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Tìm kiếm nha sĩ..."
+          placeholderTextColor={COLORS.textLight}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <Ionicons name="close-circle" size={20} color={COLORS.textLight} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {filteredDentists.length > 0 ? (
         <View style={styles.listContainer}>
-          {dentists.map((dentist) => (
+          {filteredDentists.map((dentist) => (
             <View key={dentist._id || dentist.id} style={styles.dentistCard}>
               {/* Avatar */}
               <View style={styles.avatarSection}>
@@ -146,8 +172,10 @@ export default function DentistsScreen() {
         </View>
       ) : (
         <View style={styles.emptyContainer}>
-          <Ionicons name="people-outline" size={64} color={COLORS.textLight} />
-          <Text style={styles.emptyText}>Chưa có thông tin nha sĩ</Text>
+          <Ionicons name={searchQuery ? "search-outline" : "people-outline"} size={64} color={COLORS.textLight} />
+          <Text style={styles.emptyText}>
+            {searchQuery ? 'Không tìm thấy nha sĩ phù hợp' : 'Chưa có thông tin nha sĩ'}
+          </Text>
         </View>
       )}
     </ScrollView>
@@ -187,6 +215,28 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: COLORS.text,
+    padding: 0,
   },
   listContainer: {
     padding: 16,
