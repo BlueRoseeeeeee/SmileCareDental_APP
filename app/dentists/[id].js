@@ -109,7 +109,7 @@ export default function DentistDetail() {
             />
           ) : (
             <View style={styles.avatarPlaceholder}>
-              <Ionicons name="person" size={80} color={COLORS.white} />
+              <Image source={require('../../assets/smileCare_img/smile-dental-logo.png')}/>
             </View>
           )}
         </View>
@@ -308,12 +308,8 @@ const styles = StyleSheet.create({
   avatarPlaceholder: {
     width: 200,
     height: 200,
-    borderRadius: 100,
-    backgroundColor: COLORS.secondary,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 4,
-    borderColor: COLORS.border,
   },
   nameSection: {
     marginBottom: 24,

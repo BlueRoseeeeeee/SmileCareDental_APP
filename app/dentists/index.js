@@ -5,16 +5,17 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import { decode } from 'he';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
   ActivityIndicator,
+  Image,
   RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import userService from '../../src/services/userService';
 
@@ -66,7 +67,12 @@ export default function DentistsScreen() {
 
   const stripHtml = (html) => {
     if (!html) return '';
-    return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+    // Loại bỏ các thẻ HTML
+    const withoutTags = html.replace(/<[^>]*>/g, ' ');
+    // Decode HTML entities bằng thư viện he
+    const decoded = decode(withoutTags);
+    // Chuẩn hóa khoảng trắng
+    return decoded.replace(/\s+/g, ' ').trim();
   };
 
   if (loading) {
@@ -120,8 +126,7 @@ export default function DentistsScreen() {
                 {/* Description Preview */}
                 {dentist.description && (
                   <View style={styles.descriptionPreview}>
-                    <Text style={styles.descriptionLabel}>Vị trí công việc:</Text>
-                    <Text style={styles.descriptionText} numberOfLines={8}>
+                    <Text style={styles.descriptionText} numberOfLines={5}>
                       {stripHtml(dentist.description)}
                     </Text>
                   </View>
