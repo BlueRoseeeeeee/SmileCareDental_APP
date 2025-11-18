@@ -151,6 +151,26 @@ const appointmentService = {
   },
 
   /**
+   * Patient request cancellation (must be >=24 hours before appointment)
+   * @param {string} appointmentId - ID của appointment
+   * @param {string} reason - Lý do hủy (min 10 characters)
+   * @returns {Promise} Response từ API
+   */
+  requestCancellation: async (appointmentId, reason) => {
+    try {
+      console.log('[appointmentService] Request cancellation:', { appointmentId, reason });
+      const response = await appointmentApi.post(`/appointments/${appointmentId}/request-cancellation`, {
+        reason: reason
+      });
+      console.log('[appointmentService] Request cancellation response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('[appointmentService] Request cancellation error:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Check-in appointment
    * @param {string} appointmentId - ID của appointment
    * @param {string} notes - Ghi chú
