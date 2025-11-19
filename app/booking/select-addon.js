@@ -103,33 +103,50 @@ export default function BookingSelectAddOnScreen() {
         return;
       }
 
-      // Check if service requires exam first and user has indications
-      if (serviceData.requireExamFirst && user) {
-        setLoading(true);
-        try {
-          const response = await recordService.getTreatmentIndications(user._id, serviceData._id);
-          const indications = response.data || [];
-          
-          setTreatmentIndications(indications);
-          
-          // If has indications with serviceAddOnId, can select that specific addon
-          if (indications.length > 0 && indications[0].serviceAddOnId) {
-            setCanSelectAddOn(true);
-          } else {
+      // 🆕 Logic mới: Phân biệt dịch vụ exam và treatment
+      // - Dịch vụ EXAM (type = 'exam') → CHO PHÉP chọn addon tự do
+      // - Dịch vụ TREATMENT (type = 'treatment') → PHẢI có chỉ định mới được chọn addon
+      
+      // Kiểm tra loại dịch vụ
+      if (serviceData.type === 'treatment') {
+        // ===== DỊCH VỤ TREATMENT =====
+        // Bắt buộc phải có chỉ định từ bác sĩ mới được chọn addon
+        if (user) {
+          setLoading(true);
+          try {
+            console.log('🔍 [TREATMENT] Checking treatment indications for patient:', user._id, 'service:', serviceData._id);
+            
+            const response = await recordService.getTreatmentIndications(user._id, serviceData._id);
+            const indications = response.data || [];
+            
+            console.log('✅ Treatment indications found:', indications);
+            setTreatmentIndications(indications);
+            
+            // Chỉ cho phép chọn addon nếu có chỉ định cụ thể
+            if (indications.length > 0 && indications[0].serviceAddOnId) {
+              setCanSelectAddOn(true);
+              console.log('✅ [TREATMENT] Can select addon (from indication):', indications[0].serviceAddOnName);
+            } else {
+              // Không có chỉ định → chỉ cho XEM, không cho chọn
+              setCanSelectAddOn(false);
+              console.log('⚠️ [TREATMENT] No indication found - can only view addons, cannot select');
+            }
+          } catch (error) {
+            console.error('❌ Error fetching treatment indications:', error);
             setCanSelectAddOn(false);
+          } finally {
+            setLoading(false);
           }
-        } catch (error) {
-          console.error('Error fetching treatment indications:', error);
+        } else {
+          // User chưa login nhưng là dịch vụ treatment
           setCanSelectAddOn(false);
-        } finally {
-          setLoading(false);
+          console.log('⚠️ [TREATMENT] User not logged in - can only view addons');
         }
-      } else if (serviceData.requireExamFirst && !user) {
-        // User chưa login nhưng service yêu cầu khám trước
-        setCanSelectAddOn(false);
       } else {
-        // Service không yêu cầu khám trước → chỉ cho XEM, không cho chọn
-        setCanSelectAddOn(false);
+        // ===== DỊCH VỤ EXAM =====
+        // Cho phép chọn addon tự do
+        setCanSelectAddOn(true);
+        console.log('✅ [EXAM] Service is exam type - can select any addon freely');
       }
     } catch (error) {
       console.error('Error loading service:', error);
@@ -139,12 +156,17 @@ export default function BookingSelectAddOnScreen() {
 
   const handleSelectAddOn = async (addon) => {
     if (!canSelectAddOn) {
-      Alert.alert('Thông báo', 'Bạn cần khám trước để được chỉ định gói điều trị phù hợp');
+      // 🆕 Thông báo rõ ràng hơn dựa vào loại dịch vụ
+      if (service.type === 'treatment') {
+        Alert.alert('Thông báo', 'Dịch vụ điều trị yêu cầu phải có chỉ định từ bác sĩ. Vui lòng đặt lịch khám trước.');
+      } else {
+        Alert.alert('Thông báo', 'Vui lòng đăng nhập để đặt lịch khám');
+      }
       return;
     }
     
-    // Only allow selecting the indicated addon if there's an indication
-    if (treatmentIndications.length > 0) {
+    // 🆕 Chỉ kiểm tra chỉ định nếu là TREATMENT và có chỉ định
+    if (service.type === 'treatment' && treatmentIndications.length > 0) {
       const isIndicatedAddon = treatmentIndications.some(ind => ind.serviceAddOnId === addon._id);
       
       if (!isIndicatedAddon) {
@@ -153,16 +175,18 @@ export default function BookingSelectAddOnScreen() {
       }
     }
     
-    // Save selected addon
+    // Save selected addon and navigate immediately
     await AsyncStorage.setItem('booking_serviceAddOn', JSON.stringify(addon));
-    await AsyncStorage.setItem('booking_serviceAddOn_userSelected', 'true');
+    await AsyncStorage.setItem('booking_serviceAddOn_userSelected', 'true'); // 🆕 Flag: user explicitly selected this addon
     
-    // Save recordId if this addon is from a treatment indication
+    // 🆕 Save examRecordId (not just recordId) if this addon is from a treatment indication
     const indication = treatmentIndications.find(ind => ind.serviceAddOnId === addon._id);
     if (indication) {
-      await AsyncStorage.setItem('booking_recordId', indication.recordId);
+      await AsyncStorage.setItem('booking_examRecordId', indication.recordId);
+      console.log('✅ Saved examRecordId from indication:', indication.recordId);
     } else {
-      await AsyncStorage.removeItem('booking_recordId');
+      // Clear examRecordId if not from indication
+      await AsyncStorage.removeItem('booking_examRecordId');
     }
     
     Alert.alert('Thành công', `Đã chọn gói: ${addon.name}`);
@@ -174,18 +198,20 @@ export default function BookingSelectAddOnScreen() {
   };
 
   const handleSkipAddon = async () => {
-    // Nếu có chỉ định addon cụ thể → BẮT BUỘC phải chọn
+    // Nếu có chỉ định addon cụ thể → BẮT BUỘC phải chọn, không được bỏ qua
     if (treatmentIndications.length > 0 && treatmentIndications.some(ind => ind.serviceAddOnId)) {
-      Alert.alert('Thông báo', 'Bạn phải chọn một trong các gói dịch vụ đã được chỉ định để tiếp tục');
+      Alert.alert('Lỗi', 'Bạn phải chọn một trong các gói dịch vụ đã được chỉ định để tiếp tục');
       return;
     }
     
-    if (service.requireExamFirst && treatmentIndications.length === 0) {
-      Alert.alert('Thông báo', 'Dịch vụ này yêu cầu khám trước. Vui lòng đặt lịch khám tổng quát trước.');
+    // 🆕 Chỉ cảnh báo nếu là TREATMENT
+    if (service.type === 'treatment' && treatmentIndications.length === 0) {
+      // Service là treatment nhưng không có chỉ định
+      Alert.alert('Thông báo', 'Dịch vụ điều trị yêu cầu phải có chỉ định từ bác sĩ. Vui lòng đặt lịch khám trước.');
       return;
     }
     
-    // If service has addons, save the longest one for slot grouping
+    // 🆕 If service has addons, save the longest one for slot grouping
     if (service.serviceAddOns && service.serviceAddOns.length > 0) {
       // 🔥 Filter only active addons
       const activeAddons = service.serviceAddOns.filter(addon => addon.isActive === true);
@@ -196,7 +222,7 @@ export default function BookingSelectAddOnScreen() {
         }, activeAddons[0]);
         
         await AsyncStorage.setItem('booking_serviceAddOn', JSON.stringify(longestAddon));
-        await AsyncStorage.setItem('booking_serviceAddOn_userSelected', 'false');
+        await AsyncStorage.setItem('booking_serviceAddOn_userSelected', 'false'); // 🆕 Flag: auto-selected for slot grouping only
         console.log('⏭️ No addon selected → Using longest ACTIVE addon for slot grouping:', longestAddon.name, longestAddon.durationMinutes, 'min');
       } else {
         // No active addons, clear addon selection
@@ -210,7 +236,7 @@ export default function BookingSelectAddOnScreen() {
       await AsyncStorage.removeItem('booking_serviceAddOn_userSelected');
     }
     
-    await AsyncStorage.removeItem('booking_recordId');
+    await AsyncStorage.removeItem('booking_examRecordId');
     
     router.push('/booking/select-dentist');
   };
@@ -249,10 +275,10 @@ export default function BookingSelectAddOnScreen() {
         </View>
 
         {/* Important Notifications */}
-        {service.requireExamFirst && (
+        {service.type === 'treatment' && (
           <View style={styles.alertWarning}>
             <Ionicons name="warning" size={20} color={COLORS.warning} />
-            <Text style={styles.alertText}>Dịch vụ này yêu cầu khám trước khi điều trị</Text>
+            <Text style={styles.alertText}>Dịch vụ điều trị yêu cầu phải có chỉ định từ bác sĩ</Text>
           </View>
         )}
         
@@ -268,11 +294,11 @@ export default function BookingSelectAddOnScreen() {
           </View>
         )}
         
-        {service.requireExamFirst && treatmentIndications.length === 0 && (
+        {service.type === 'treatment' && treatmentIndications.length === 0 && (
           <View style={styles.alertInfo}>
             <Ionicons name="information-circle" size={20} color={COLORS.primary} />
             <Text style={styles.alertText}>
-              Bạn cần khám trước để được nha sỹ chỉ định gói điều trị phù hợp.
+              Chưa có chỉ định điều trị. Bạn cần đặt lịch khám để được bác sĩ đánh giá và chỉ định gói điều trị phù hợp.
             </Text>
           </View>
         )}
@@ -284,7 +310,9 @@ export default function BookingSelectAddOnScreen() {
               ? (treatmentIndications.length > 0 && treatmentIndications[0].serviceAddOnId
                   ? 'Vui lòng xác nhận gói điều trị đã được chỉ định'
                   : 'Chọn gói dịch vụ phù hợp với nhu cầu của bạn')
-              : 'Các gói dịch vụ chỉ để tham khảo. Bạn cần khám trước để được chỉ định gói phù hợp.'
+              : (service.type === 'treatment'
+                  ? 'Các gói dịch vụ chỉ để tham khảo. Dịch vụ điều trị yêu cầu phải có chỉ định từ bác sĩ.'
+                  : 'Chọn gói dịch vụ phù hợp với nhu cầu của bạn')
             }
           </Text>
         )}
@@ -292,7 +320,11 @@ export default function BookingSelectAddOnScreen() {
         {/* AddOns List */}
         {service.serviceAddOns && service.serviceAddOns.filter(addon => addon.isActive).map((addon) => {
           const isIndicated = treatmentIndications.some(ind => ind.serviceAddOnId === addon._id);
-          const isDisabled = !canSelectAddOn || (treatmentIndications.length > 0 && !isIndicated);
+          // 🆕 Logic mới:
+          // - Nếu service là TREATMENT VÀ có chỉ định → chỉ enable addon được chỉ định
+          // - Nếu service là EXAM → enable tất cả addon
+          const isDisabled = !canSelectAddOn || 
+            (service.type === 'treatment' && treatmentIndications.length > 0 && !isIndicated);
           
           return (
             <TouchableOpacity

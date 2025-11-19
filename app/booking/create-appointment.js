@@ -138,7 +138,7 @@ export default function CreateAppointmentScreen() {
     try {
       setLoading(true);
       
-      // Lấy exam recordId nếu có
+      // Lấy examRecordId nếu có (từ chỉ định điều trị)
       const examRecordId = await AsyncStorage.getItem('booking_examRecordId');
       
       // Tạo reservation data
