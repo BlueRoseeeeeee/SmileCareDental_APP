@@ -2,23 +2,24 @@
  * @author: HoTram
  */
 
-import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { Link, router } from 'expo-router';
+import { useState } from 'react';
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
-  ActivityIndicator, 
-  Image
+  View
 } from 'react-native';
-import { Link, router } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { Ionicons } from '@expo/vector-icons';
 
 const COLORS = {
   primary: '#2596be',
@@ -38,6 +39,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
+  const [showLockedModal, setShowLockedModal] = useState(false);
   
   const { login: loginUser, loading, clearError } = useAuth();
 
@@ -62,6 +64,12 @@ export default function LoginScreen() {
       // Chỉ nhân viên mới có các tính năng này
       if (response.pendingData) {
         Alert.alert('Lỗi', 'Tài khoản này không phải là tài khoản khách hàng.');
+        return;
+      }
+      
+      // Kiểm tra xem tài khoản có bị khóa không(isActive === false)
+      if (response.user && response.user.isActive === false) {
+        setShowLockedModal(true);
         return;
       }
       
@@ -181,6 +189,32 @@ export default function LoginScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/*Modal thông báo tài khoản bị khoá*/}
+      <Modal
+        visible={showLockedModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowLockedModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalIconContainer}>
+              <Ionicons name="lock-closed" size={50} color={COLORS.error} />
+            </View>
+            <Text style={styles.modalTitle}>Tài khoản đã bị tạm khóa</Text>
+            <Text style={styles.modalMessage}>
+              Vui lòng liên hệ quản trị viên để được hỗ trợ
+            </Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setShowLockedModal(false)}
+            >
+              <Text style={styles.modalButtonText}>Đóng</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -327,5 +361,53 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.primary,
     fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 24,
+    width: '85%',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalIconContainer: {
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLORS.error,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 24,
+  },
+  modalButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    minWidth: 120,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
