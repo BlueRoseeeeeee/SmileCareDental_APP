@@ -103,7 +103,7 @@ export default function BookingSelectAddOnScreen() {
         return;
       }
 
-      // 🆕 Logic mới: Phân biệt dịch vụ exam và treatment
+      // Logic mới: Phân biệt dịch vụ exam và treatment
       // - Dịch vụ EXAM (type = 'exam') → CHO PHÉP chọn addon tự do
       // - Dịch vụ TREATMENT (type = 'treatment') → PHẢI có chỉ định mới được chọn addon
       
@@ -114,25 +114,18 @@ export default function BookingSelectAddOnScreen() {
         if (user) {
           setLoading(true);
           try {
-            console.log('🔍 [TREATMENT] Checking treatment indications for patient:', user._id, 'service:', serviceData._id);
-            
             const response = await recordService.getTreatmentIndications(user._id, serviceData._id);
             const indications = response.data || [];
-            
-            console.log('✅ Treatment indications found:', indications);
+
             setTreatmentIndications(indications);
             
             // Chỉ cho phép chọn addon nếu có chỉ định cụ thể
             if (indications.length > 0 && indications[0].serviceAddOnId) {
               setCanSelectAddOn(true);
-              console.log('✅ [TREATMENT] Can select addon (from indication):', indications[0].serviceAddOnName);
-            } else {
               // Không có chỉ định → chỉ cho XEM, không cho chọn
               setCanSelectAddOn(false);
-              console.log('⚠️ [TREATMENT] No indication found - can only view addons, cannot select');
             }
           } catch (error) {
-            console.error('❌ Error fetching treatment indications:', error);
             setCanSelectAddOn(false);
           } finally {
             setLoading(false);
@@ -140,13 +133,11 @@ export default function BookingSelectAddOnScreen() {
         } else {
           // User chưa login nhưng là dịch vụ treatment
           setCanSelectAddOn(false);
-          console.log('⚠️ [TREATMENT] User not logged in - can only view addons');
         }
       } else {
         // ===== DỊCH VỤ EXAM =====
         // Cho phép chọn addon tự do
         setCanSelectAddOn(true);
-        console.log('✅ [EXAM] Service is exam type - can select any addon freely');
       }
     } catch (error) {
       console.error('Error loading service:', error);
@@ -156,7 +147,7 @@ export default function BookingSelectAddOnScreen() {
 
   const handleSelectAddOn = async (addon) => {
     if (!canSelectAddOn) {
-      // 🆕 Thông báo rõ ràng hơn dựa vào loại dịch vụ
+      //  Thông báo rõ ràng hơn dựa vào loại dịch vụ
       if (service.type === 'treatment') {
         Alert.alert('Thông báo', 'Dịch vụ điều trị yêu cầu phải có chỉ định từ bác sĩ. Vui lòng đặt lịch khám trước.');
       } else {
@@ -165,7 +156,7 @@ export default function BookingSelectAddOnScreen() {
       return;
     }
     
-    // 🆕 Chỉ kiểm tra chỉ định nếu là TREATMENT và có chỉ định
+    //  Chỉ kiểm tra chỉ định nếu là TREATMENT và có chỉ định
     if (service.type === 'treatment' && treatmentIndications.length > 0) {
       const isIndicatedAddon = treatmentIndications.some(ind => ind.serviceAddOnId === addon._id);
       
@@ -179,11 +170,10 @@ export default function BookingSelectAddOnScreen() {
     await AsyncStorage.setItem('booking_serviceAddOn', JSON.stringify(addon));
     await AsyncStorage.setItem('booking_serviceAddOn_userSelected', 'true'); // 🆕 Flag: user explicitly selected this addon
     
-    // 🆕 Save examRecordId (not just recordId) if this addon is from a treatment indication
+    //  Save examRecordId (not just recordId) if this addon is from a treatment indication
     const indication = treatmentIndications.find(ind => ind.serviceAddOnId === addon._id);
     if (indication) {
       await AsyncStorage.setItem('booking_examRecordId', indication.recordId);
-      console.log('✅ Saved examRecordId from indication:', indication.recordId);
     } else {
       // Clear examRecordId if not from indication
       await AsyncStorage.removeItem('booking_examRecordId');
@@ -204,14 +194,11 @@ export default function BookingSelectAddOnScreen() {
       return;
     }
     
-    // 🆕 Chỉ cảnh báo nếu là TREATMENT
-    if (service.type === 'treatment' && treatmentIndications.length === 0) {
-      // Service là treatment nhưng không có chỉ định
-      Alert.alert('Thông báo', 'Dịch vụ điều trị yêu cầu phải có chỉ định từ bác sĩ. Vui lòng đặt lịch khám trước.');
-      return;
-    }
+    // REMOVED: Không chặn treatment không có chỉ định
+    // Cho phép user tiếp tục đặt lịch ngay cả khi chưa có chỉ định
+    // User sẽ cần đặt lịch khám trước để được chỉ định sau
     
-    // 🆕 If service has addons, save the longest one for slot grouping
+    // If service has addons, save the longest one for slot grouping
     if (service.serviceAddOns && service.serviceAddOns.length > 0) {
       // 🔥 Filter only active addons
       const activeAddons = service.serviceAddOns.filter(addon => addon.isActive === true);
@@ -320,7 +307,7 @@ export default function BookingSelectAddOnScreen() {
         {/* AddOns List */}
         {service.serviceAddOns && service.serviceAddOns.filter(addon => addon.isActive).map((addon) => {
           const isIndicated = treatmentIndications.some(ind => ind.serviceAddOnId === addon._id);
-          // 🆕 Logic mới:
+          //  Logic mới:
           // - Nếu service là TREATMENT VÀ có chỉ định → chỉ enable addon được chỉ định
           // - Nếu service là EXAM → enable tất cả addon
           const isDisabled = !canSelectAddOn || 
