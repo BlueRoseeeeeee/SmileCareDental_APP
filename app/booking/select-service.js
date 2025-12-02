@@ -223,7 +223,7 @@ export default function BookingSelectServiceScreen() {
               ]}
               onPress={() => handleSourceChange('recommended')}
             >
-              <Ionicons name="star" size={16} color={serviceSource === 'recommended' ? COLORS.white : COLORS.gold} />
+            
               <Text
                 style={[
                   styles.sourceButtonText,
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.border,
