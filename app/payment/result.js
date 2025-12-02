@@ -238,7 +238,7 @@ export default function PaymentResultScreen() {
               <View style={styles.failedInfoItem}>
                 <Text style={styles.failedInfoBullet}>•</Text>
                 <Text style={styles.failedInfoText}>
-                  Vượt quá thời gian thanh toán (15 phút)
+                  Vượt quá thời gian thanh toán (3 phút)
                 </Text>
               </View>
             </View>

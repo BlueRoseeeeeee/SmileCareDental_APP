@@ -3,16 +3,15 @@
  * Payment Failed Screen - Thanh toán thất bại
  */
 
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 const COLORS = {
   primary: '#2596be',
@@ -119,7 +118,7 @@ export default function PaymentFailedScreen() {
             </View>
             <View style={styles.reasonItem}>
               <Text style={styles.reasonBullet}>•</Text>
-              <Text style={styles.reasonText}>Vượt quá thời gian thanh toán (15 phút)</Text>
+              <Text style={styles.reasonText}>Vượt quá thời gian thanh toán (3 phút)</Text>
             </View>
           </View>
         </View>
