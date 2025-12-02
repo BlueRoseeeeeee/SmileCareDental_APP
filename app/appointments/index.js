@@ -164,10 +164,6 @@ export default function AppointmentsScreen() {
 
     // Filter by date
     if (selectedDateFilter !== 'all') {
-      console.log('Filtering by date:', selectedDateFilter);
-      if (selectedDateFilter === 'custom') {
-        console.log('Custom dates:', { customStartDate, customEndDate });
-      }
       const today = dayjs();
       filtered = filtered.filter((apt) => {
         const aptDate = dayjs(apt.date);
@@ -207,18 +203,33 @@ export default function AppointmentsScreen() {
     }
 
     const now = new Date();
-    const appointmentDateTime = new Date(appointment.appointmentDate || appointment.date);
     
-    // Parse startTime (format: "HH:MM")
-    const startTime = appointment.startTime || appointment.time?.split(' - ')[0];
-    if (startTime) {
-      const [hours, minutes] = startTime.split(':').map(Number);
-      appointmentDateTime.setHours(hours, minutes, 0, 0);
+    // Get appointment date
+    const dateStr = appointment.appointmentDate || appointment.date;
+    if (!dateStr) {
+      return false;
     }
     
-    const timeDiff = appointmentDateTime - now;
-    const oneDayInMs = 24 * 60 * 60 * 1000; // 24 hours
+    // Parse startTime (format: "HH:MM" or "HH:MM - HH:MM")
+    let startTime = appointment.startTime;
+    if (!startTime && appointment.time) {
+      startTime = appointment.time.split(' - ')[0];
+    }
     
+    if (!startTime) {
+      return false;
+    }
+    
+    // Create appointment datetime
+    const appointmentDateTime = new Date(dateStr);
+    const [hours, minutes] = startTime.split(':').map(Number);
+    appointmentDateTime.setHours(hours, minutes, 0, 0);
+    
+    // Calculate time difference
+    const timeDiff = appointmentDateTime - now;
+    const oneDayInMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    
+    // Must be >= 24 hours before appointment time
     return timeDiff >= oneDayInMs;
   };
 
