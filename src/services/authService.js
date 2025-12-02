@@ -44,7 +44,6 @@ const createAuthClient = () => {
       
       return { data };
     } catch (error) {
-      console.error('API Request Error:', error);
       throw error;
     }
   };
@@ -97,7 +96,6 @@ export const authService = {
       
       // Check if has pendingData (multiple roles, first login, etc)
       if (response.data.pendingData) {
-        console.log('📋 [authService] Has pendingData:', response.data.pendingData);
         return response.data;
       }
       
@@ -116,7 +114,6 @@ export const authService = {
       
       return response.data;
     } catch (error) {
-      console.error(' [authService] Login error:', error);
       throw error;
     }
   },
