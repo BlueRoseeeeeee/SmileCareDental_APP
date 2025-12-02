@@ -159,22 +159,22 @@ export default function CreateAppointmentScreen() {
         examRecordId: examRecordId || null
       };
       
-      console.log('📝 Creating reservation with data:', reservationData);
+      console.log('Creating reservation with data:', reservationData);
       if (examRecordId) {
-        console.log('🩺 Exam record ID for hasBeenUsed update:', examRecordId);
+        console.log('Exam record ID for hasBeenUsed update:', examRecordId);
       }
       
       const response = await appointmentService.reserveAppointment(reservationData);
       
-      console.log('✅ Reservation API response:', response);
+      console.log(' Reservation API response:', response);
       
       if (response.success && response.data) {
         // Lưu reservation data vào AsyncStorage để dùng ở màn payment
         await AsyncStorage.setItem('booking_reservation', JSON.stringify(response.data));
         
         Alert.alert(
-          'Đặt chỗ thành công!',
-          'Vui lòng thanh toán trong 15 phút.',
+          'Giữ chỗ thành công!',
+          'Vui lòng thanh toán trong 3 phút.',
           [
             {
               text: 'OK',
