@@ -42,15 +42,82 @@ const formatPrice = (price) => {
   }).format(price);
 };
 
+// Lấy bảng giá hiện hành đang hoạt động
+const getCurrentPriceScheduleInfo = (priceSchedules = [], basePrice = 0) => {
+  if (!priceSchedules || priceSchedules.length === 0) {
+    return {
+      activeSchedule: null,
+      effectivePrice: basePrice,
+      hasActiveSchedule: false
+    };
+  }
+
+  const now = new Date();
+  const activeSchedules = priceSchedules.filter(schedule => schedule.isActive === true);
+
+  const activeSchedule = activeSchedules.find(schedule => {
+    const startDate = new Date(schedule.startDate);
+    const endDate = new Date(schedule.endDate);
+    return now >= startDate && now <= endDate;
+  });
+
+  const effectivePrice = activeSchedule ? activeSchedule.price : basePrice;
+
+  return {
+    activeSchedule,
+    effectivePrice,
+    hasActiveSchedule: !!activeSchedule
+  };
+};
+
+// Format date
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 // Price Display Component
 const PriceDisplay = ({ addon }) => {
+  const priceInfo = getCurrentPriceScheduleInfo(addon.priceSchedules, addon.price);
+  const { activeSchedule, hasActiveSchedule } = priceInfo;
+
   return (
     <View style={styles.priceContainer}>
-      <View style={styles.priceRow}>
-        <Ionicons name="cash-outline" size={16} color={COLORS.secondary} />
-        <Text style={styles.priceNormal}>{formatPrice(addon.price)}</Text>
-        <Text style={styles.priceUnit}>/ {addon.unit}</Text>
-      </View>
+      {hasActiveSchedule ? (
+        // Có giá mới đang áp dụng
+        <View>
+          <View style={styles.priceRow}>
+            <Text style={{ textDecorationLine: 'line-through', color: COLORS.textLight, fontSize: 14 }}>
+              {formatPrice(addon.price)}
+            </Text>
+          </View>
+          <View style={[styles.priceRow, { marginTop: 4 }]}>
+            <Ionicons name="cash-outline" size={16} color={COLORS.secondary} />
+            <Text style={styles.priceNormal}>
+              {formatPrice(activeSchedule.price)}
+            </Text>
+            <Text style={styles.priceUnit}>/ {addon.unit}</Text>
+          </View>
+          <Text style={{ fontSize: 11, color: COLORS.textLight, marginTop: 4 }}>
+            {formatDate(activeSchedule.startDate)} - {formatDate(activeSchedule.endDate)}
+          </Text>
+          {activeSchedule.reason && (
+            <Text style={{ fontSize: 11, color: COLORS.textLight, fontStyle: 'italic', marginTop: 2 }}>
+              {activeSchedule.reason}
+            </Text>
+          )}
+        </View>
+      ) : (
+        // Giá thường
+        <View style={styles.priceRow}>
+          <Ionicons name="cash-outline" size={16} color={COLORS.secondary} />
+          <Text style={styles.priceNormal}>{formatPrice(addon.price)}</Text>
+          <Text style={styles.priceUnit}>/ {addon.unit}</Text>
+        </View>
+      )}
     </View>
   );
 };
