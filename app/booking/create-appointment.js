@@ -272,36 +272,14 @@ export default function CreateAppointmentScreen() {
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Giá dịch vụ:</Text>
               <View style={styles.infoValueContainer}>
-                {activeSchedule ? (
-                  <View>
-                    <View style={styles.priceRow}>
-                      <Text style={styles.basePriceStrike}>
-                        {formatCurrency(basePrice)} VNĐ
-                      </Text>
-                      <Text style={styles.discountPrice}>
-                        {formatCurrency(activeSchedule.price)} VNĐ
-                      </Text>
-                      {serviceAddOn && (
-                        <Text style={styles.priceUnit}> / {serviceAddOn.unit}</Text>
-                      )}
-                      <View style={styles.discountBadge}>
-                        <Text style={styles.discountBadgeText}>Giảm giá</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.scheduleDate}>
-                      ({formatDisplayDate(activeSchedule.startDate)} - {formatDisplayDate(activeSchedule.endDate)})
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={styles.priceRow}>
-                    <Text style={styles.regularPrice}>
-                      {formatCurrency(basePrice)} VNĐ
-                    </Text>
-                    {serviceAddOn && (
-                      <Text style={styles.priceUnit}> / {serviceAddOn.unit}</Text>
-                    )}
-                  </View>
-                )}
+                <View style={styles.priceRow}>
+                  <Text style={styles.regularPrice}>
+                    {formatCurrency(effectivePrice)} VNĐ
+                  </Text>
+                  {serviceAddOn && (
+                    <Text style={styles.priceUnit}> / {serviceAddOn.unit}</Text>
+                  )}
+                </View>
               </View>
             </View>
 
