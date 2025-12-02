@@ -122,6 +122,7 @@ export default function BookingSelectAddOnScreen() {
             // Chỉ cho phép chọn addon nếu có chỉ định cụ thể
             if (indications.length > 0 && indications[0].serviceAddOnId) {
               setCanSelectAddOn(true);
+            } else {
               // Không có chỉ định → chỉ cho XEM, không cho chọn
               setCanSelectAddOn(false);
             }
@@ -140,7 +141,6 @@ export default function BookingSelectAddOnScreen() {
         setCanSelectAddOn(true);
       }
     } catch (error) {
-      console.error('Error loading service:', error);
       Alert.alert('Lỗi', 'Không thể tải thông tin dịch vụ');
     }
   };
@@ -209,13 +209,11 @@ export default function BookingSelectAddOnScreen() {
         }, activeAddons[0]);
         
         await AsyncStorage.setItem('booking_serviceAddOn', JSON.stringify(longestAddon));
-        await AsyncStorage.setItem('booking_serviceAddOn_userSelected', 'false'); // 🆕 Flag: auto-selected for slot grouping only
-        console.log('⏭️ No addon selected → Using longest ACTIVE addon for slot grouping:', longestAddon.name, longestAddon.durationMinutes, 'min');
+        await AsyncStorage.setItem('booking_serviceAddOn_userSelected', 'false');
       } else {
         // No active addons, clear addon selection
         await AsyncStorage.removeItem('booking_serviceAddOn');
         await AsyncStorage.removeItem('booking_serviceAddOn_userSelected');
-        console.log('⚠️ No active addons available');
       }
     } else {
       // Clear addon selection if no addons exist
@@ -262,10 +260,10 @@ export default function BookingSelectAddOnScreen() {
         </View>
 
         {/* Important Notifications */}
-        {service.type === 'treatment' && (
+        {service.type === 'treatment' && !(treatmentIndications.length > 0 && treatmentIndications.some(ind => ind.serviceAddOnId)) && (
           <View style={styles.alertWarning}>
             <Ionicons name="warning" size={20} color={COLORS.warning} />
-            <Text style={styles.alertText}>Dịch vụ điều trị yêu cầu phải có chỉ định từ bác sĩ</Text>
+            <Text style={styles.alertText}>Dịch vụ điều trị yêu cầu phải có chỉ định từ nha sĩ</Text>
           </View>
         )}
         
