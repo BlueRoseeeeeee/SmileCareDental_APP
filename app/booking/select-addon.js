@@ -4,6 +4,7 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -18,7 +19,6 @@ import {
 } from 'react-native';
 import { useAuth } from '../../src/contexts/AuthContext';
 import recordService from '../../src/services/recordService';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const COLORS = {
   primary: '#2596be',
@@ -390,6 +390,18 @@ export default function BookingSelectAddOnScreen() {
                   <Text style={styles.durationText}>Thời gian: ~{addon.durationMinutes} phút</Text>
                 </View>
               )}
+
+              {/* button Xem chi tiết */}
+              <TouchableOpacity
+                style={styles.viewDetailButton}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  router.push(`/services/${service._id}/addons/${addon._id}`);
+                }}
+              >
+                <Ionicons name="information-circle-outline" size={16} color={COLORS.primary} />
+                <Text style={styles.viewDetailText}>Xem chi tiết</Text>
+              </TouchableOpacity>
             </TouchableOpacity>
           );
         })}
@@ -578,10 +590,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginBottom: 8,
   },
   durationText: {
     fontSize: 13,
     color: COLORS.textLight,
+  },
+  viewDetailButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    backgroundColor: '#e6f7ff',
+    gap: 4,
+    marginTop: 4,
+  },
+  viewDetailText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.primary,
   },
   footer: {
     flexDirection: 'row',
