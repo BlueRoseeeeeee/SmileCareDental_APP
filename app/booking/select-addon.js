@@ -84,7 +84,7 @@ export default function BookingSelectAddOnScreen() {
       await AsyncStorage.removeItem('booking_serviceAddOn');
       await AsyncStorage.removeItem('booking_recordId');
 
-      // Nếu service không có addons, skip sang màn chọn bác sĩ
+      // Nếu service không có addons, skip sang màn chọn nha sĩ
       if (!serviceData.serviceAddOns || serviceData.serviceAddOns.length === 0) {
         Alert.alert('Thông báo', 'Dịch vụ này không có gói phụ, chuyển sang bước tiếp theo');
         setTimeout(() => {
@@ -110,7 +110,7 @@ export default function BookingSelectAddOnScreen() {
       // Kiểm tra loại dịch vụ
       if (serviceData.type === 'treatment') {
         // ===== DỊCH VỤ TREATMENT =====
-        // Bắt buộc phải có chỉ định từ bác sĩ mới được chọn addon
+        // Bắt buộc phải có chỉ định từ nha sĩ mới được chọn addon
         if (user) {
           setLoading(true);
           try {
@@ -149,7 +149,7 @@ export default function BookingSelectAddOnScreen() {
     if (!canSelectAddOn) {
       //  Thông báo rõ ràng hơn dựa vào loại dịch vụ
       if (service.type === 'treatment') {
-        Alert.alert('Thông báo', 'Dịch vụ điều trị yêu cầu phải có chỉ định từ bác sĩ. Vui lòng đặt lịch khám trước.');
+        Alert.alert('Thông báo', 'Dịch vụ điều trị yêu cầu phải có chỉ định từ nha sĩ. Vui lòng đặt lịch khám trước.');
       } else {
         Alert.alert('Thông báo', 'Vui lòng đăng nhập để đặt lịch khám');
       }
@@ -259,15 +259,9 @@ export default function BookingSelectAddOnScreen() {
           <Text style={styles.serviceName}>{service.name}</Text>
         </View>
 
-        {/* Important Notifications */}
-        {service.type === 'treatment' && !(treatmentIndications.length > 0 && treatmentIndications.some(ind => ind.serviceAddOnId)) && (
-          <View style={styles.alertWarning}>
-            <Ionicons name="warning" size={20} color={COLORS.warning} />
-            <Text style={styles.alertText}>Dịch vụ điều trị yêu cầu phải có chỉ định từ nha sĩ</Text>
-          </View>
-        )}
-        
-        {treatmentIndications.length > 0 && treatmentIndications.some(ind => ind.serviceAddOnId) && (
+        {/* Notification - Single unified message */}
+        {service.type === 'treatment' && treatmentIndications.length > 0 && treatmentIndications.some(ind => ind.serviceAddOnId) ? (
+          // Có chỉ định → Thông báo xanh
           <View style={styles.alertSuccess}>
             <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
             <Text style={styles.alertText}>
@@ -277,29 +271,17 @@ export default function BookingSelectAddOnScreen() {
               }
             </Text>
           </View>
-        )}
-        
-        {service.type === 'treatment' && treatmentIndications.length === 0 && (
+        ) : service.type === 'treatment' ? (
+          // Chưa có chỉ định → Thông báo xanh info
           <View style={styles.alertInfo}>
             <Ionicons name="information-circle" size={20} color={COLORS.primary} />
             <Text style={styles.alertText}>
-              Chưa có chỉ định điều trị. Bạn cần đặt lịch khám để được bác sĩ đánh giá và chỉ định gói điều trị phù hợp.
+              Dịch vụ điều trị yêu cầu chỉ định từ nha sĩ. Vui lòng đặt lịch khám để được đánh giá và chỉ định gói điều trị phù hợp.
             </Text>
           </View>
-        )}
-
-        {/* Guide Text */}
-        {service.serviceAddOns && service.serviceAddOns.length > 0 && (
-          <Text style={styles.guideText}>
-            {canSelectAddOn
-              ? (treatmentIndications.length > 0 && treatmentIndications[0].serviceAddOnId
-                  ? 'Vui lòng xác nhận gói điều trị đã được chỉ định'
-                  : 'Chọn gói dịch vụ phù hợp với nhu cầu của bạn')
-              : (service.type === 'treatment'
-                  ? 'Các gói dịch vụ chỉ để tham khảo. Dịch vụ điều trị yêu cầu phải có chỉ định từ bác sĩ.'
-                  : 'Chọn gói dịch vụ phù hợp với nhu cầu của bạn')
-            }
-          </Text>
+        ) : (
+          // Dịch vụ exam → Guide text
+          <Text style={styles.guideText}>Chọn gói dịch vụ phù hợp với nhu cầu của bạn</Text>
         )}
 
         {/* AddOns List */}
