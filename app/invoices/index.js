@@ -139,26 +139,36 @@ export default function InvoicesScreen() {
   }, []);
 
   const filterInvoices = () => {
-    let filtered = invoices;
+    let filtered = [...invoices];
+
+    // Filter những hóa đơn của user hiện tại. lọc ở FE luôn, không dùng API
+    if (user?._id) {
+      filtered = filtered.filter(inv => 
+        inv.patientId === user._id || inv.patientId?._id === user._id
+      );
+    }
 
     // Filter by status
     if (selectedFilter !== 'all') {
       filtered = filtered.filter((inv) => inv.status === selectedFilter);
     }
 
-    // Filter by date range
-    if (startDate || endDate) {
+    // Filter by date range 
+    if (startDate && endDate) {
       filtered = filtered.filter((inv) => {
         const invDate = dayjs(inv.createdAt);
-        if (startDate && endDate) {
-          return invDate.isAfter(dayjs(startDate).subtract(1, 'day')) && 
-                 invDate.isBefore(dayjs(endDate).add(1, 'day'));
-        } else if (startDate) {
-          return invDate.isAfter(dayjs(startDate).subtract(1, 'day'));
-        } else if (endDate) {
-          return invDate.isBefore(dayjs(endDate).add(1, 'day'));
-        }
-        return true;
+        return invDate.isSameOrAfter(dayjs(startDate), 'day') && 
+               invDate.isSameOrBefore(dayjs(endDate), 'day');
+      });
+    } else if (startDate) {
+      filtered = filtered.filter((inv) => {
+        const invDate = dayjs(inv.createdAt);
+        return invDate.isSameOrAfter(dayjs(startDate), 'day');
+      });
+    } else if (endDate) {
+      filtered = filtered.filter((inv) => {
+        const invDate = dayjs(inv.createdAt);
+        return invDate.isSameOrBefore(dayjs(endDate), 'day');
       });
     }
 
