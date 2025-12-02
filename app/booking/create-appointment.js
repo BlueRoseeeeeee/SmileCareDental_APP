@@ -388,7 +388,7 @@ export default function CreateAppointmentScreen() {
             <Text style={styles.paymentNoticeTitle}>Thanh toán trực tuyến</Text>
             <Text style={styles.paymentNoticeText}>
               Sau khi xác nhận, bạn sẽ được chuyển đến trang chọn phương thức thanh toán (Visa/MasterCard). 
-              Vui lòng hoàn tất thanh toán trong 15 phút.
+              Vui lòng hoàn tất thanh toán trong 3 phút.
             </Text>
           </View>
         </View>

@@ -370,13 +370,13 @@ export default function PaymentSelectionScreen() {
               <Text style={styles.noticeBullet}>•</Text>
               <Text style={styles.noticeText}>
                 Vui lòng hoàn tất thanh toán trong vòng{' '}
-                <Text style={styles.noticeHighlight}>15 phút</Text>
+                <Text style={styles.noticeHighlight}>3 phút</Text>
               </Text>
             </View>
             <View style={styles.noticeItem}>
               <Text style={styles.noticeBullet}>•</Text>
               <Text style={styles.noticeText}>
-                Sau 15 phút, đặt khám sẽ tự động hủy và bạn cần đặt lại
+                Sau 3 phút, đặt khám sẽ tự động hủy và bạn cần đặt lại
               </Text>
             </View>
             <View style={styles.noticeItem}>
