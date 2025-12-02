@@ -5,14 +5,18 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Modal,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -22,6 +26,9 @@ import {
   View,
 } from 'react-native';
 import appointmentService from '../../src/services/appointmentService';
+
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 dayjs.locale('vi');
 
@@ -72,6 +79,7 @@ const DATE_FILTER_OPTIONS = [
   { value: 'thisWeek', label: 'Tuần này' },
   { value: 'thisMonth', label: 'Tháng này' },
   { value: 'lastMonth', label: 'Tháng trước' },
+  { value: 'custom', label: 'Tùy chỉnh (Từ - Đến)', icon: 'calendar-outline' },
 ];
 
 export default function AppointmentsScreen() {
@@ -88,6 +96,10 @@ export default function AppointmentsScreen() {
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
+  const [customStartDate, setCustomStartDate] = useState(null);
+  const [customEndDate, setCustomEndDate] = useState(null);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
   useEffect(() => {
     loadAppointments();
@@ -95,7 +107,8 @@ export default function AppointmentsScreen() {
 
   useEffect(() => {
     filterAppointments();
-  }, [selectedFilter, selectedDateFilter, appointments, filterAppointments]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFilter, selectedDateFilter, appointments, customStartDate, customEndDate]);
 
   const loadAppointments = async () => {
     try {
@@ -151,6 +164,10 @@ export default function AppointmentsScreen() {
 
     // Filter by date
     if (selectedDateFilter !== 'all') {
+      console.log('Filtering by date:', selectedDateFilter);
+      if (selectedDateFilter === 'custom') {
+        console.log('Custom dates:', { customStartDate, customEndDate });
+      }
       const today = dayjs();
       filtered = filtered.filter((apt) => {
         const aptDate = dayjs(apt.date);
@@ -164,6 +181,16 @@ export default function AppointmentsScreen() {
             return aptDate.isSame(today, 'month');
           case 'lastMonth':
             return aptDate.isSame(today.subtract(1, 'month'), 'month');
+          case 'custom':
+            if (!customStartDate && !customEndDate) return true;
+            if (customStartDate && !customEndDate) {
+              return aptDate.isSameOrAfter(dayjs(customStartDate), 'day');
+            }
+            if (!customStartDate && customEndDate) {
+              return aptDate.isSameOrBefore(dayjs(customEndDate), 'day');
+            }
+            return aptDate.isSameOrAfter(dayjs(customStartDate), 'day') && 
+                   aptDate.isSameOrBefore(dayjs(customEndDate), 'day');
           default:
             return true;
         }
@@ -171,9 +198,9 @@ export default function AppointmentsScreen() {
     }
 
     setFilteredAppointments(filtered);
-  }, [appointments, selectedFilter, selectedDateFilter]);
+  }, [appointments, selectedFilter, selectedDateFilter, customStartDate, customEndDate]);
 
-  // ✅ Check if can request cancellation (>=24 hours before appointment)
+  //  Check if can request cancellation (>=24 hours before appointment)
   const canRequestCancellation = (appointment) => {
     if (appointment.status !== 'confirmed') {
       return false;
@@ -533,6 +560,49 @@ export default function AppointmentsScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Date Range Picker - Chỉ show ra khi "Tùy chỉnh" được chọn */}
+        {selectedDateFilter === 'custom' && (
+          <View style={styles.customDateContainer}>
+            <View style={styles.datePickerRow}>
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={() => setShowStartDatePicker(true)}
+              >
+                <Ionicons name="calendar-outline" size={18} color={COLORS.primary} />
+                <Text style={styles.datePickerLabel}>Từ:</Text>
+                <Text style={styles.datePickerValue}>
+                  {customStartDate ? dayjs(customStartDate).format('DD/MM/YYYY') : 'Chọn'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={() => setShowEndDatePicker(true)}
+              >
+                <Ionicons name="calendar-outline" size={18} color={COLORS.primary} />
+                <Text style={styles.datePickerLabel}>Đến:</Text>
+                <Text style={styles.datePickerValue}>
+                  {customEndDate ? dayjs(customEndDate).format('DD/MM/YYYY') : 'Chọn'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Clear Custom Dates Button */}
+            {(customStartDate || customEndDate) && (
+              <TouchableOpacity
+                style={styles.clearDatesButton}
+                onPress={() => {
+                  setCustomStartDate(null);
+                  setCustomEndDate(null);
+                }}
+              >
+                <Ionicons name="close-circle" size={16} color={COLORS.error} />
+                <Text style={styles.clearDatesText}>Xóa bộ lọc</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
 
       {/* Status Dropdown Modal */}
@@ -652,6 +722,41 @@ export default function AppointmentsScreen() {
 
       {/* Detail Modal */}
       {renderDetailModal()}
+
+      {/* Start Date Picker */}
+      {showStartDatePicker && (
+        <DateTimePicker
+          value={customStartDate || new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={(event, selectedDate) => {
+            setShowStartDatePicker(Platform.OS === 'ios');
+            if (selectedDate) {
+              setCustomStartDate(selectedDate);
+              // If end date is before start date, clear it
+              if (customEndDate && selectedDate > customEndDate) {
+                setCustomEndDate(null);
+              }
+            }
+          }}
+        />
+      )}
+
+      {/* End Date Picker */}
+      {showEndDatePicker && (
+        <DateTimePicker
+          value={customEndDate || customStartDate || new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          minimumDate={customStartDate || undefined}
+          onChange={(event, selectedDate) => {
+            setShowEndDatePicker(Platform.OS === 'ios');
+            if (selectedDate) {
+              setCustomEndDate(selectedDate);
+            }
+          }}
+        />
+      )}
 
       {/* Cancel Request Modal */}
       <Modal
@@ -840,6 +945,53 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: COLORS.text,
+    fontWeight: '500',
+  },
+  customDateContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  datePickerRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  datePickerButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: COLORS.background,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 6,
+  },
+  datePickerLabel: {
+    fontSize: 13,
+    color: COLORS.textLight,
+    fontWeight: '500',
+  },
+  datePickerValue: {
+    fontSize: 13,
+    color: COLORS.text,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'right',
+  },
+  clearDatesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    paddingVertical: 8,
+    gap: 4,
+  },
+  clearDatesText: {
+    fontSize: 13,
+    color: COLORS.error,
     fontWeight: '500',
   },
   dropdownOverlay: {
