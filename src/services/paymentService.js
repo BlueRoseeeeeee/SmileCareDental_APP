@@ -112,6 +112,20 @@ const paymentService = {
       throw error;
     }
   },
+
+  /**
+   * Tạo link thanh toán Stripe
+   * @param {Object} paymentData - Thông tin thanh toán
+   * @returns {Promise} Response từ API
+   */
+  createStripePaymentLink: async (paymentData) => {
+    try {
+      const response = await paymentApi.post('/payments/stripe/create-payment-link', paymentData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default paymentService;

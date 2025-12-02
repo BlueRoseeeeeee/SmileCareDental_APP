@@ -143,21 +143,11 @@ export default function BookingSelectDateScreen() {
         const dates = response.data.workingDates;
         setWorkingDates(dates);
         
-        // Create marked dates for calendar
+        // Create marked dates for calendar - chỉ enable, không tô màu
         const marked = {};
         dates.forEach(dateObj => {
           marked[dateObj.date] = {
             disabled: false, // Enable dates that are in workingDates
-            customStyles: {
-              container: {
-                backgroundColor: '#e6f4ff',
-                borderRadius: 8,
-              },
-              text: {
-                color: COLORS.primary,
-                fontWeight: 'bold',
-              },
-            },
           };
         });
         setMarkedDates(marked);
@@ -193,33 +183,33 @@ export default function BookingSelectDateScreen() {
     // Update selected date
     setSelectedDate(dateStr);
     
-    // Update marked dates to highlight selected date
-    const newMarked = { ...markedDates };
-    
-    // Remove previous selection
-    Object.keys(newMarked).forEach(key => {
-      if (newMarked[key].selected) {
-        delete newMarked[key].selected;
-        delete newMarked[key].selectedColor;
+    // Rebuild marked dates - chỉ ngày được chọn mới có màu
+    const newMarked = {};
+    workingDates.forEach(dateObj => {
+      if (dateObj.date === dateStr) {
+        // Ngày được chọn - tô màu xanh đậm
+        newMarked[dateObj.date] = {
+          disabled: false,
+          selected: true,
+          selectedColor: COLORS.primary,
+          customStyles: {
+            container: {
+              backgroundColor: COLORS.primary,
+              borderRadius: 8,
+            },
+            text: {
+              color: COLORS.white,
+              fontWeight: 'bold',
+            },
+          },
+        };
+      } else {
+        // Các ngày khác - chỉ enable, không tô màu
+        newMarked[dateObj.date] = {
+          disabled: false,
+        };
       }
     });
-    
-    // Add new selection
-    newMarked[dateStr] = {
-      ...newMarked[dateStr],
-      selected: true,
-      selectedColor: COLORS.primary,
-      customStyles: {
-        container: {
-          backgroundColor: COLORS.primary,
-          borderRadius: 8,
-        },
-        text: {
-          color: COLORS.white,
-          fontWeight: 'bold',
-        },
-      },
-    };
     
     setMarkedDates(newMarked);
   };

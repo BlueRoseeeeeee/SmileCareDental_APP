@@ -34,6 +34,7 @@ const COLORS = {
   warning: '#fbbc04',
   error: '#ea4335',
   vnpay: '#0066CC',
+  stripe: '#635bff',
 };
 
 // Format date to DD/MM/YYYY
@@ -105,11 +106,7 @@ export default function PaymentSelectionScreen() {
     const orderId = reservation.orderId || reservation.reservationId || reservation._id;
     const amount = reservation.amount || reservation.depositAmount || 0;
 
-    console.log('🔵 [Payment Selection] Final orderId:', orderId);
-    console.log('🔵 [Payment Selection] Final amount:', amount);
-
     if (!orderId || !amount) {
-      console.error('❌ [Payment Selection] Missing orderId or amount!');
       Alert.alert('Lỗi', 'Thiếu thông tin thanh toán. Vui lòng thử lại.');
       return;
     }
@@ -118,7 +115,6 @@ export default function PaymentSelectionScreen() {
       setLoading(true);
 
       if (paymentMethod === 'vnpay') {
-        console.log('🔵 [Payment Selection] Creating VNPay payment URL...');
 
         const requestBody = {
           orderId: orderId,
@@ -127,28 +123,46 @@ export default function PaymentSelectionScreen() {
           locale: 'vn'
         };
 
-        console.log('🔵 [Payment Selection] Request body:', requestBody);
-
         const response = await paymentService.createVNPayUrl(requestBody);
-        console.log('🔵 [Payment Selection] VNPay response:', response);
 
         if (response.success && response.data?.paymentUrl) {
-          console.log('✅ [Payment Selection] Opening VNPay in WebView:', response.data.paymentUrl);
           
-          // Lưu paymentUrl để dùng trong WebView screen
+          // Lưu paymentUrl và payment method để dùng trong WebView screen
           await AsyncStorage.setItem('payment_url', response.data.paymentUrl);
           await AsyncStorage.setItem('payment_orderId', orderId);
+          await AsyncStorage.setItem('payment_method', 'vnpay');
           
           // Navigate đến WebView screen
           router.push('/payment/webview');
         } else {
           throw new Error(response.message || 'Không thể tạo URL thanh toán VNPay');
         }
+      } else if (paymentMethod === 'stripe') {
+
+        const requestBody = {
+          orderId: orderId,
+          amount: amount,
+          orderInfo: `Thanh toan dat lich kham nha khoa - ${orderId}`,
+        };
+
+        const response = await paymentService.createStripePaymentLink(requestBody);
+
+        if (response.success && response.data?.paymentUrl) {
+          
+          // Lưu paymentUrl và payment method để dùng trong WebView screen
+          await AsyncStorage.setItem('payment_url', response.data.paymentUrl);
+          await AsyncStorage.setItem('payment_orderId', orderId);
+          await AsyncStorage.setItem('payment_method', 'stripe');
+          
+          // Navigate đến WebView screen
+          router.push('/payment/webview');
+        } else {
+          throw new Error(response.message || 'Không thể tạo link thanh toán Stripe');
+        }
       } else {
         Alert.alert('Thông báo', 'Phương thức thanh toán này đang được phát triển');
       }
     } catch (error) {
-      console.error('❌ [Payment Selection] Payment error:', error);
       Alert.alert(
         'Lỗi',
         error.response?.data?.message || error.message || 'Có lỗi xảy ra khi xử lý thanh toán'
@@ -305,6 +319,34 @@ export default function PaymentSelectionScreen() {
                 <Text style={styles.paymentName}>VNPay</Text>
                 <Text style={styles.paymentDescription}>
                   ATM / Internet Banking / Ví điện tử / Thẻ quốc tế
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          {/* Stripe Option */}
+          <TouchableOpacity
+            style={[
+              styles.paymentOption,
+              paymentMethod === 'stripe' && styles.paymentOptionSelected
+            ]}
+            onPress={() => setPaymentMethod('stripe')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.radioButton}>
+              {paymentMethod === 'stripe' && (
+                <View style={styles.radioButtonInner} />
+              )}
+            </View>
+            
+            <View style={styles.paymentOptionContent}>
+              <View style={styles.paymentIconContainer}>
+                <Ionicons name="card-outline" size={32} color={COLORS.stripe} />
+              </View>
+              <View style={styles.paymentInfo}>
+                <Text style={styles.paymentName}>Stripe</Text>
+                <Text style={styles.paymentDescription}>
+                  Visa / MasterCard / American Express / Thẻ quốc tế
                 </Text>
               </View>
             </View>

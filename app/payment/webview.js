@@ -31,6 +31,7 @@ const COLORS = {
 export default function PaymentWebViewScreen() {
   const [paymentUrl, setPaymentUrl] = useState('');
   const [orderId, setOrderId] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('vnpay');
   const [loading, setLoading] = useState(true);
   const [canGoBack, setCanGoBack] = useState(false);
   const webViewRef = useRef(null);
@@ -51,6 +52,7 @@ export default function PaymentWebViewScreen() {
     try {
       const url = await AsyncStorage.getItem('payment_url');
       const id = await AsyncStorage.getItem('payment_orderId');
+      const method = await AsyncStorage.getItem('payment_method');
       
       if (!url) {
         Alert.alert('Lỗi', 'Không tìm thấy URL thanh toán');
@@ -60,9 +62,8 @@ export default function PaymentWebViewScreen() {
 
       setPaymentUrl(url);
       setOrderId(id || '');
-      console.log('📦 Payment URL loaded:', url);
+      setPaymentMethod(method || 'vnpay');
     } catch (error) {
-      console.error('Error loading payment URL:', error);
       Alert.alert('Lỗi', 'Không thể tải URL thanh toán');
       router.back();
     }
@@ -93,6 +94,51 @@ export default function PaymentWebViewScreen() {
     setCanGoBack(navState.canGoBack);
     
     console.log('🌐 WebView URL changed:', url);
+
+    // Kiểm tra callback từ Stripe - Backend redirect về /patient/payment/result?payment=success/failed
+    if (paymentMethod === 'stripe' && url.includes('/patient/payment/result')) {
+      console.log('✅ Detected Stripe callback URL');
+      
+      if (webViewRef.current) {
+        webViewRef.current.stopLoading();
+      }
+      
+      const urlParams = parseUrlParams(url);
+      const paymentStatus = urlParams.payment; // 'success' hoặc 'failed'
+      const orderIdFromUrl = urlParams.orderId || orderId;
+      
+      console.log('📊 Stripe Response - Payment Status:', paymentStatus);
+      console.log('📊 URL Params:', urlParams);
+      
+      let status = 'error';
+      let message = '';
+      
+      if (paymentStatus === 'success') {
+        status = 'success';
+        message = 'Giao dịch thành công';
+      } else if (paymentStatus === 'failed') {
+        status = 'failed';
+        message = 'Giao dịch không thành công do: Khách hàng hủy giao dịch';
+      } else {
+        status = 'failed';
+        message = 'Giao dịch không thành công';
+      }
+      
+      setTimeout(() => {
+        router.replace({
+          pathname: '/payment/result',
+          params: {
+            status: status,
+            orderId: orderIdFromUrl,
+            payment: status,
+            code: paymentStatus === 'success' ? '00' : '24',
+            message: message,
+          },
+        });
+      }, 100);
+      
+      return;
+    }
 
     // Kiểm tra nếu URL chứa callback từ VNPay
     // VNPay callback format: /payment/vnpay/callback?vnp_ResponseCode=00&...
@@ -195,7 +241,9 @@ export default function PaymentWebViewScreen() {
         <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
           <Ionicons name="close" size={24} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Thanh toán VNPay</Text>
+        <Text style={styles.headerTitle}>
+          {paymentMethod === 'stripe' ? 'Thanh toán Stripe' : 'Thanh toán VNPay'}
+        </Text>
         <TouchableOpacity 
           onPress={handleWebViewGoBack} 
           style={styles.backButton}
@@ -217,6 +265,37 @@ export default function PaymentWebViewScreen() {
         onShouldStartLoadWithRequest={(request) => {
           const { url } = request;
           console.log('🔍 Should load URL:', url);
+          
+          // Chặn load trang callback của Stripe
+          if (paymentMethod === 'stripe' && url.includes('/patient/payment/result')) {
+            console.log('🚫 Blocking Stripe callback URL load');
+            
+            const urlParams = parseUrlParams(url);
+            const paymentStatus = urlParams.payment;
+            const orderIdFromUrl = urlParams.orderId || orderId;
+            
+            let status = 'error';
+            if (paymentStatus === 'success') {
+              status = 'success';
+            } else if (paymentStatus === 'failed') {
+              status = 'failed';
+            }
+            
+            setTimeout(() => {
+              router.replace({
+                pathname: '/payment/result',
+                params: {
+                  status: status,
+                  orderId: orderIdFromUrl,
+                  payment: status,
+                  code: paymentStatus === 'success' ? '00' : '24',
+                  message: paymentStatus === 'success' ? 'Giao dịch thành công' : 'Giao dịch không thành công do: Khách hàng hủy giao dịch',
+                },
+              });
+            }, 100);
+            
+            return false;
+          }
           
           // Chặn load trang callback của VNPay
           if (url.includes('vnp_ResponseCode') || url.includes('vnp_TxnRef')) {
