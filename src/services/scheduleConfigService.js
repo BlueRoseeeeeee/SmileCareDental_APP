@@ -10,7 +10,7 @@ const scheduleConfigService = {
   // Lấy cấu hình hệ thống
   getConfig: async () => {
     try {
-      const token = await AsyncStorage.getItem('authToken');
+      const token = await AsyncStorage.getItem('accessToken');
       
       const response = await fetch(`${SCHEDULE_URL}/schedule/config`, {
         method: 'GET',
@@ -28,7 +28,6 @@ const scheduleConfigService = {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error fetching schedule config:', error);
       throw error;
     }
   },
@@ -36,7 +35,7 @@ const scheduleConfigService = {
   // Lấy danh sách ngày nghỉ lễ
   getHolidays: async () => {
     try {
-      const token = await AsyncStorage.getItem('authToken');
+      const token = await AsyncStorage.getItem('accessToken');
       
       const response = await fetch(`${SCHEDULE_URL}/schedule/config/holidays`, {
         method: 'GET',
@@ -54,7 +53,6 @@ const scheduleConfigService = {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error fetching holidays:', error);
       throw error;
     }
   },

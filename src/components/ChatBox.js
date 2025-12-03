@@ -24,6 +24,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import chatbotService from '../services/chatbotService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -54,6 +55,8 @@ export default function ChatBox() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  const [previewImageUri, setPreviewImageUri] = useState(null);
   const scrollViewRef = useRef(null);
 
   // Draggable position
@@ -130,19 +133,19 @@ export default function ChatBox() {
         setMessages(response.data);
       }
     } catch (error) {
-      console.error('Failed to load history:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() && !selectedImage) return;
 
     const userMessage = {
       role: 'user',
-      content: inputMessage,
+      content: inputMessage || (selectedImage ? '📷 [Đã gửi ảnh]' : ''),
       timestamp: new Date(),
+      imagePreview: imagePreview, // Store image preview for display
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -150,27 +153,85 @@ export default function ChatBox() {
     setTyping(true);
 
     try {
-      const response = await chatbotService.sendMessage(inputMessage);
-
+      const response = await chatbotService.sendMessage(inputMessage, selectedImage);
+      
       setTyping(false);
 
       if (response.success) {
-        const assistantMessage = {
-          role: 'assistant',
-          content: response.response,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
+        // Handle image analysis response
+        if (response.analysis) {
+          const assistantMessage = {
+            role: 'assistant',
+            content: response.analysis,
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+        } 
+        // Handle regular chat response
+        else if (response.response) {
+          const assistantMessage = {
+            role: 'assistant',
+            content: response.response,
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+        }
+
+        // Check if response contains booking data for payment redirect
+        if (response.redirectToPayment && response.bookingData) {
+          
+          Alert.alert(
+            'Đặt lịch thành công',
+            'Bạn muốn chuyển đến trang thanh toán không?',
+            [
+              {
+                text: 'Để sau',
+                style: 'cancel',
+              },
+              {
+                text: 'Thanh toán ngay',
+                onPress: () => {
+                  // TODO: Navigate to booking/payment screen
+                  // Store booking data in AsyncStorage (similar to web localStorage)
+                  AsyncStorage.multiSet([
+                    ['booking_service', JSON.stringify(response.bookingData.service)],
+                    ['booking_serviceAddOn', JSON.stringify(response.bookingData.serviceAddOn)],
+                    ['booking_dentist', JSON.stringify(response.bookingData.dentist)],
+                    ['booking_date', response.bookingData.date],
+                    ['booking_slotGroup', JSON.stringify(response.bookingData.slotGroup)],
+                  ]).then(() => {
+                    // Navigate to CreateAppointment screen
+                    // navigation.navigate('CreateAppointment'); // Uncomment when navigation is available
+                    Alert.alert('Thông báo', 'Chức năng đang phát triển. Vui lòng đặt lịch qua trang chính.');
+                  });
+                },
+              },
+            ]
+          );
+        }
       } else {
-        throw new Error(response.message || 'Failed to get response');
+        // Handle non-teeth image or other errors
+        if (response.isTeethImage === false) {
+          const errorMessage = {
+            role: 'assistant',
+            content: response.message || 'Ảnh bạn gửi không phải là hình răng/miệng. Vui lòng gửi lại ảnh răng để tôi có thể tư vấn chính xác hơn. 🦷',
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+        } else {
+          throw new Error(response.message || 'Failed to get response');
+        }
       }
     } catch (error) {
       setTyping(false);
-      console.error('Send message error:', error);
-      Alert.alert('Lỗi', 'Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại.');
+      Alert.alert('Κỗi', 'Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại.');
       
       // Remove user message if failed
       setMessages((prev) => prev.filter((m) => m !== userMessage));
+    } finally {
+      // Clear image selection
+      setSelectedImage(null);
+      setImagePreview(null);
     }
   };
 
@@ -189,8 +250,7 @@ export default function ChatBox() {
               setMessages([]);
               Alert.alert('Thành công', 'Đã xóa lịch sử chat');
             } catch (error) {
-              console.error('Clear history error:', error);
-              Alert.alert('Lỗi', 'Không thể xóa lịch sử chat');
+              Alert.alert('Κỗi', 'Không thể xóa lịch sử chat');
             }
           },
         },
@@ -216,15 +276,23 @@ export default function ChatBox() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
+        
+        // Get proper MIME type from URI extension
+        const getMimeType = (uri) => {
+          if (uri.endsWith('.png')) return 'image/png';
+          if (uri.endsWith('.jpg') || uri.endsWith('.jpeg')) return 'image/jpeg';
+          if (uri.endsWith('.gif')) return 'image/gif';
+          return 'image/jpeg'; // default
+        };
+        
         setImagePreview(asset.uri);
         setSelectedImage({
           uri: asset.uri,
-          type: asset.type || 'image/jpeg',
-          fileName: asset.fileName || 'teeth-image.jpg',
+          type: getMimeType(asset.uri),
+          fileName: asset.fileName || `photo-${Date.now()}.jpg`,
         });
       }
     } catch (error) {
-      console.error('Select image error:', error);
       Alert.alert('Lỗi', 'Không thể chọn ảnh');
     }
   };
@@ -246,6 +314,7 @@ export default function ChatBox() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
+        
         setImagePreview(asset.uri);
         setSelectedImage({
           uri: asset.uri,
@@ -254,7 +323,6 @@ export default function ChatBox() {
         });
       }
     } catch (error) {
-      console.error('Take photo error:', error);
       Alert.alert('Lỗi', 'Không thể chụp ảnh');
     }
   };
@@ -277,62 +345,8 @@ export default function ChatBox() {
   };
 
   const handleConfirmSendImage = async () => {
-    if (!selectedImage || !imagePreview) return;
-
-    // Add user message with image
-    const userMessage = {
-      role: 'user',
-      content: '[Đã gửi ảnh] ' + (inputMessage || 'Phân tích ảnh răng của tôi'),
-      imagePreview: imagePreview,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-
-    setUploadingImage(true);
-    setTyping(true);
-
-    try {
-      const response = await chatbotService.analyzeImage(
-        selectedImage,
-        inputMessage
-      );
-
-      setTyping(false);
-      setUploadingImage(false);
-
-      if (response.success) {
-        const assistantMessage = {
-          role: 'assistant',
-          content: response.analysis,
-          suggestions: response.suggestions,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
-
-        // Show suggestions if any
-        if (response.suggestions && response.suggestions.length > 0) {
-          Alert.alert(
-            'Gợi ý dịch vụ',
-            response.suggestions.join('\n'),
-            [{ text: 'OK' }]
-          );
-        }
-      } else {
-        throw new Error(response.message || 'Không thể phân tích ảnh');
-      }
-    } catch (error) {
-      setTyping(false);
-      setUploadingImage(false);
-      console.error('Send image error:', error);
-      Alert.alert(
-        'Lỗi',
-        error.response?.data?.message || 'Có lỗi xảy ra khi phân tích ảnh'
-      );
-    } finally {
-      setImagePreview(null);
-      setSelectedImage(null);
-      setInputMessage('');
-    }
+    // Use handleSendMessage instead (unified logic)
+    await handleSendMessage();
   };
 
   const handleRemovePreview = () => {
@@ -353,7 +367,7 @@ export default function ChatBox() {
       >
         {!isUser && (
           <View style={styles.assistantAvatar}>
-            <Ionicons name="chatbot-outline" size={20} color={COLORS.white} />
+            <Ionicons name="chatbubble-ellipses-outline" size={20} color={COLORS.white} />
           </View>
         )}
 
@@ -364,11 +378,19 @@ export default function ChatBox() {
           ]}
         >
           {msg.imagePreview && (
-            <Image
-              source={{ uri: msg.imagePreview }}
-              style={styles.messageImage}
-              resizeMode="cover"
-            />
+            <TouchableOpacity
+              onPress={() => {
+                setPreviewImageUri(msg.imagePreview);
+                setPreviewModalVisible(true);
+              }}
+              activeOpacity={0.9}
+            >
+              <Image
+                source={{ uri: msg.imagePreview }}
+                style={styles.messageImage}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
           )}
           <Text
             style={[
@@ -376,7 +398,25 @@ export default function ChatBox() {
               isUser ? styles.userText : styles.assistantText,
             ]}
           >
-            {msg.content}
+            {/* Parse Markdown links [text](url) into clickable text */}
+            {msg.content.split(/(\[.+?\]\(.+?\))/).map((part, i) => {
+              const linkMatch = part.match(/\[(.+?)\]\((.+?)\)/);
+              if (linkMatch) {
+                return (
+                  <Text
+                    key={i}
+                    style={{ color: isUser ? '#fff' : '#1890ff', textDecorationLine: 'underline', fontWeight: 'bold' }}
+                    onPress={() => {
+                      // Open link in browser or handle navigation
+                      Alert.alert('Link', `Mở link: ${linkMatch[2]}`);
+                    }}
+                  >
+                    {linkMatch[1]}
+                  </Text>
+                );
+              }
+              return <Text key={i}>{part}</Text>;
+            })}
           </Text>
           {msg.suggestions && msg.suggestions.length > 0 && (
             <View style={styles.suggestionsContainer}>
@@ -405,7 +445,7 @@ export default function ChatBox() {
   const renderTypingIndicator = () => (
     <View style={[styles.messageContainer, styles.assistantMessage]}>
       <View style={styles.assistantAvatar}>
-        <Ionicons name="chatbot-outline" size={20} color={COLORS.white} />
+        <Ionicons name="chatbubble-ellipses-outline" size={20} color={COLORS.white} />
       </View>
       <View style={[styles.messageBubble, styles.assistantBubble]}>
         <View style={styles.typingIndicator}>
@@ -519,53 +559,25 @@ export default function ChatBox() {
           )}
         </ScrollView>
 
-        {/* Image Preview */}
-        {imagePreview && (
-          <View style={styles.imagePreviewContainer}>
-            <View style={styles.imagePreviewHeader}>
-              <Text style={styles.imagePreviewTitle}>Xem trước ảnh</Text>
-              <TouchableOpacity onPress={handleRemovePreview}>
-                <Ionicons name="close" size={24} color={COLORS.text} />
+        {/* Input */}
+        <View style={styles.inputContainer}>
+          {/* Image Preview - Display above input if selected */}
+          {imagePreview && (
+            <View style={styles.imagePreviewBar}>
+              <Image
+                source={{ uri: imagePreview }}
+                style={styles.previewThumbnail}
+                resizeMode="cover"
+              />
+              <Text style={styles.previewFileName} numberOfLines={1}>
+                {selectedImage?.fileName || 'image.jpg'}
+              </Text>
+              <TouchableOpacity onPress={handleRemovePreview} style={styles.removePreviewButton}>
+                <Ionicons name="close-circle" size={20} color={COLORS.error} />
               </TouchableOpacity>
             </View>
-            <Image
-              source={{ uri: imagePreview }}
-              style={styles.previewImage}
-              resizeMode="contain"
-            />
-            <TextInput
-              style={styles.imageInput}
-              value={inputMessage}
-              onChangeText={setInputMessage}
-              placeholder="Thêm câu hỏi về ảnh (tùy chọn)..."
-              placeholderTextColor={COLORS.textLight}
-              multiline
-            />
-            <TouchableOpacity
-              style={[
-                styles.sendImageButton,
-                uploadingImage && styles.sendImageButtonDisabled,
-              ]}
-              onPress={handleConfirmSendImage}
-              disabled={uploadingImage}
-            >
-              {uploadingImage ? (
-                <ActivityIndicator size="small" color={COLORS.white} />
-              ) : (
-                <>
-                  <Ionicons name="send" size={20} color={COLORS.white} />
-                  <Text style={styles.sendImageButtonText}>
-                    Gửi ảnh để phân tích
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Input */}
-        {!imagePreview && (
-          <View style={styles.inputContainer}>
+          )}
+          <View style={styles.inputRow}>
             <TouchableOpacity
               style={styles.imageButton}
               onPress={handleImageOptions}
@@ -574,14 +586,14 @@ export default function ChatBox() {
               <Ionicons
                 name="image-outline"
                 size={24}
-                color={loading || typing ? COLORS.border : COLORS.primary}
+                color={selectedImage ? COLORS.blue : (loading || typing ? COLORS.border : COLORS.primary)}
               />
             </TouchableOpacity>
             <TextInput
               style={styles.input}
               value={inputMessage}
               onChangeText={setInputMessage}
-              placeholder="Nhập câu hỏi..."
+              placeholder={selectedImage ? "Mô tả thêm về ảnh (tùy chọn)..." : "Nhập câu hỏi..."}
               placeholderTextColor={COLORS.textLight}
               multiline
               maxLength={500}
@@ -590,17 +602,49 @@ export default function ChatBox() {
             <TouchableOpacity
               style={[
                 styles.sendButton,
-                (!inputMessage.trim() || loading || typing) &&
+                ((!inputMessage.trim() && !selectedImage) || loading || typing) &&
                   styles.sendButtonDisabled,
               ]}
               onPress={handleSendMessage}
-              disabled={!inputMessage.trim() || loading || typing}
+              disabled={(!inputMessage.trim() && !selectedImage) || loading || typing}
             >
               <Ionicons name="send" size={20} color={COLORS.white} />
             </TouchableOpacity>
           </View>
-        )}
+        </View>
       </KeyboardAvoidingView>
+
+      {/* modal hiển thị preview hình ảnh */}
+      <Modal
+        visible={previewModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setPreviewModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.previewModalOverlay}
+          activeOpacity={1}
+          onPress={() => setPreviewModalVisible(false)}
+        >
+          <TouchableOpacity
+            style={styles.previewModalClose}
+            onPress={() => setPreviewModalVisible(false)}
+            activeOpacity={0.9}
+          >
+            <Ionicons name="close-circle" size={40} color={COLORS.white} />
+          </TouchableOpacity>
+          
+          <Image
+            source={{ uri: previewImageUri }}
+            style={styles.previewModalImage}
+            resizeMode="contain"
+          />
+          
+          <Text style={styles.previewModalHint}>
+            Nhấn để đóng
+          </Text>
+        </TouchableOpacity>
+      </Modal>
     </Modal>
   );
 }
@@ -776,10 +820,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.assistantBubble,
   },
   messageImage: {
-    width: '100%',
-    height: 150,
+    width: 200,
+    height: 200,
     borderRadius: 8,
     marginBottom: 8,
+    backgroundColor: COLORS.background,
   },
   messageText: {
     fontSize: 14,
@@ -835,64 +880,41 @@ const styles = StyleSheet.create({
   dot3: {
     opacity: 0.8,
   },
-  imagePreviewContainer: {
+  inputContainer: {
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
-    padding: 16,
   },
-  imagePreviewHeader: {
+  imagePreviewBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  imagePreviewTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  previewImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: 8,
+    padding: 8,
+    paddingHorizontal: 16,
     backgroundColor: COLORS.background,
-  },
-  imageInput: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 12,
-    fontSize: 14,
-    color: COLORS.text,
-    maxHeight: 60,
-  },
-  sendImageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    padding: 14,
-    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
     gap: 8,
   },
-  sendImageButtonDisabled: {
-    backgroundColor: COLORS.textLight,
+  previewThumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: 4,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  sendImageButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '600',
+  previewFileName: {
+    flex: 1,
+    fontSize: 12,
+    color: COLORS.textLight,
   },
-  inputContainer: {
+  removePreviewButton: {
+    padding: 4,
+  },
+  inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     padding: 16,
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
     gap: 12,
   },
   imageButton: {
@@ -919,5 +941,28 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: COLORS.border,
+  },
+  previewModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewModalClose: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+  },
+  previewModalImage: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT * 0.8,
+  },
+  previewModalHint: {
+    position: 'absolute',
+    bottom: 50,
+    color: COLORS.white,
+    fontSize: 14,
+    opacity: 0.7,
   },
 });

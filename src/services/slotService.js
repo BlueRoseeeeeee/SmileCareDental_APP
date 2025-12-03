@@ -51,7 +51,6 @@ const slotService = {
       const response = await slotApi.get('/slot/dentists-with-nearest-slot', params);
       return response;
     } catch (error) {
-      console.error('❌ Error fetching dentists:', error);
       throw error;
     }
   },
@@ -67,7 +66,6 @@ const slotService = {
       const response = await slotApi.get(`/slot/dentist/${dentistId}/working-dates`, params);
       return response;
     } catch (error) {
-      console.error('❌ Error fetching working dates:', error);
       throw error;
     }
   },
@@ -78,7 +76,6 @@ const slotService = {
       const response = await slotApi.get(`/slot/dentist/${dentistId}/details/future`, params);
       return response;
     } catch (error) {
-      console.error('❌ Error fetching dentist slots:', error);
       throw error;
     }
   },

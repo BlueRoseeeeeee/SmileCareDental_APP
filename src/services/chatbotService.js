@@ -7,7 +7,7 @@ import { API_URLS } from '../config/apiConfig';
 import { handleTokenExpired } from '../utils/authUtils';
 
 const CHATBOT_URL = API_URLS.chatbot;
-const CHATBOT_API_URL = '/ai';
+const CHATBOT_API_URL = '/ai'; // Backend mounts chatbot routes at /api/ai
 
 // Create axios instance for chatbot service
 const chatbotApi = axios.create({
@@ -26,8 +26,13 @@ chatbotApi.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
+      
+      //  If sending FormData, delete Content-Type header
+      // Let axios automatically set it with correct boundary
+      if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+      }
     } catch (error) {
-      console.error('Error getting token:', error);
     }
     return config;
   },
@@ -50,25 +55,75 @@ chatbotApi.interceptors.response.use(
 
 const chatbotService = {
   /**
-   * Send message to chatbot
+   * Send message to chatbot (text only or text + image)
    * @param {string} message - User message
+   * @param {Object} imageFile - Optional image file object with uri
    * @returns {Promise} Response from chatbot
    */
-  sendMessage: async (message) => {
+  sendMessage: async (message, imageFile = null) => {
     try {
-      console.log('📤 [chatbotService] Send message:', message);
       const userId = await AsyncStorage.getItem('user');
       const userObj = userId ? JSON.parse(userId) : null;
 
+      // If has image, use FormData with fetch (React Native compatibility)
+      if (imageFile) {
+        const formData = new FormData();
+        
+        // 🔧 React Native FormData format - MUST include all fields
+        const imageData = {
+          uri: imageFile.uri,
+          type: imageFile.type || 'image/jpeg',
+          name: imageFile.fileName || 'teeth-image.jpg',
+        };
+        
+        formData.append('image', imageData);
+        
+        if (message) {
+          formData.append('message', message);
+        }
+        
+        const endpoint = `${CHATBOT_URL}${CHATBOT_API_URL}/analyze-image`;
+        
+        // Get token for authorization
+        const token = await AsyncStorage.getItem('accessToken');
+        
+        // Use fetch instead of axios for FormData in React Native
+        try {
+          const fetchResponse = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Authorization': token ? `Bearer ${token}` : undefined,
+              // Don't set Content-Type - React Native will set it automatically with boundary
+            },
+            body: formData,
+          });
+
+          const data = await fetchResponse.json();
+          
+          if (!fetchResponse.ok) {
+            throw {
+              response: {
+                status: fetchResponse.status,
+                data: data,
+              },
+              message: data.message || 'Image upload failed',
+            };
+          }
+
+          return data;
+        } catch (fetchError) {
+          throw fetchError;
+        }
+      }
+
+      // Text only
       const response = await chatbotApi.post(`${CHATBOT_API_URL}/chat`, {
         message,
         userId: userObj?._id || 'anonymous',
       });
 
-      console.log('📥 [chatbotService] Send message response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ [chatbotService] Send message error:', error);
       throw error;
     }
   },
@@ -80,15 +135,12 @@ const chatbotService = {
    */
   getHistory: async (limit = 100) => {
     try {
-      console.log('📤 [chatbotService] Get history, limit:', limit);
       const response = await chatbotApi.get(`${CHATBOT_API_URL}/history`, {
         params: { limit },
       });
 
-      console.log('📥 [chatbotService] Get history response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ [chatbotService] Get history error:', error);
       throw error;
     }
   },
@@ -99,51 +151,9 @@ const chatbotService = {
    */
   clearHistory: async () => {
     try {
-      console.log('📤 [chatbotService] Clear history');
       const response = await chatbotApi.delete(`${CHATBOT_API_URL}/history`);
-      console.log('📥 [chatbotService] Clear history response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ [chatbotService] Clear history error:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Analyze teeth image
-   * @param {Object} imageFile - Image file object with uri
-   * @param {string} message - Optional message about the image
-   * @returns {Promise} Analysis result
-   */
-  analyzeImage: async (imageFile, message = '') => {
-    try {
-      console.log('📤 [chatbotService] Analyze image:', imageFile.uri);
-      
-      const formData = new FormData();
-      formData.append('image', {
-        uri: imageFile.uri,
-        type: imageFile.type || 'image/jpeg',
-        name: imageFile.fileName || 'teeth-image.jpg',
-      });
-      
-      if (message) {
-        formData.append('message', message);
-      }
-
-      const response = await chatbotApi.post(
-        `${CHATBOT_API_URL}/analyze-image`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-
-      console.log('📥 [chatbotService] Analyze image response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('❌ [chatbotService] Analyze image error:', error);
       throw error;
     }
   },
