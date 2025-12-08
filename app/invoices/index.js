@@ -192,13 +192,6 @@ export default function InvoicesScreen() {
     }
   };
 
-  const handleDownloadPDF = async (invoiceId) => {
-    Alert.alert(
-      'Tải PDF',
-      'Chức năng tải PDF sẽ được hỗ trợ trong phiên bản tiếp theo',
-      [{ text: 'OK' }]
-    );
-  };
 
   const renderStatusBadge = (status) => {
     const config = STATUS_CONFIG[status] || {
@@ -306,15 +299,6 @@ export default function InvoicesScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, styles.downloadButton]}
-            onPress={() => handleDownloadPDF(invoice._id)}
-          >
-            <Ionicons name="download-outline" size={18} color={COLORS.blue} />
-            <Text style={[styles.actionButtonText, { color: COLORS.blue }]}>
-              PDF
-            </Text>
-          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
