@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -128,6 +129,7 @@ export default function BookingSelectAddOnScreen() {
   const [treatmentIndications, setTreatmentIndications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [canSelectAddOn, setCanSelectAddOn] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadServiceAndCheckIndications();
@@ -293,6 +295,15 @@ export default function BookingSelectAddOnScreen() {
     router.push('/booking/select-dentist');
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await loadServiceAndCheckIndications();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   if (!service) {
     return null;
   }
@@ -319,7 +330,17 @@ export default function BookingSelectAddOnScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView 
+        style={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
+      >
         {/* Service Name */}
         <View style={styles.serviceNameContainer}>
           <Text style={styles.serviceNameLabel}>Dịch vụ:</Text>

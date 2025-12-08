@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -53,6 +54,7 @@ export default function BookingSelectDentistScreen() {
   const [dentists, setDentists] = useState([]);
   const [filteredDentists, setFilteredDentists] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [examDentistId, setExamDentistId] = useState(null);
   const [service, setService] = useState(null);
@@ -173,6 +175,15 @@ export default function BookingSelectDentistScreen() {
     setFilteredDentists(filtered);
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await loadServiceAndFetchDentists();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const handleSelectDentist = async (dentist) => {
     // Lưu dentist vào AsyncStorage
     await AsyncStorage.setItem('booking_dentist', JSON.stringify(dentist));
@@ -209,7 +220,17 @@ export default function BookingSelectDentistScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView 
+        style={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
+      >
         {/* Service Info */}
         {service && (
           <View style={styles.serviceInfoContainer}>

@@ -6,7 +6,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import TodayAppointments from '../../src/components/TodayAppointments';
 import { useAuth } from '../../src/contexts/AuthContext';
 import scheduleConfigService from '../../src/services/scheduleConfigService';
@@ -29,6 +29,7 @@ export default function HomeScreen() {
   const [workingHours, setWorkingHours] = useState([]);
   const [workingDaysText, setWorkingDaysText] = useState('');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchWorkingInfo();
@@ -43,6 +44,17 @@ export default function HomeScreen() {
       console.error('Error fetching working info:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([fetchWorkingHours(), fetchWorkingDays()]);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -192,7 +204,19 @@ export default function HomeScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[COLORS.primary]}
+          tintColor={COLORS.primary}
+          title="Đang tải..."
+          titleColor={COLORS.textLight}
+        />
+      }
+    >
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -254,7 +278,7 @@ export default function HomeScreen() {
       </View>
 
       {/* Today Appointments Component */}
-      <TodayAppointments />
+      <TodayAppointments refresh={refreshing} />
 
       {/* Main Content */}
       <View style={styles.content}>

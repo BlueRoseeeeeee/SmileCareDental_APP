@@ -13,6 +13,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -41,6 +42,7 @@ export default function BookingSelectServiceScreen() {
   const [filteredServices, setFilteredServices] = useState([]);
   const [unusedServices, setUnusedServices] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [selectedType, setSelectedType] = useState('all'); // 'all', 'exam', 'treatment'
   const [serviceSource, setServiceSource] = useState('all'); // 'all' or 'recommended'
@@ -84,6 +86,18 @@ export default function BookingSelectServiceScreen() {
       }
     } catch (error) {
       console.error('Error fetching unused services:', error);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchServices();
+      if (isAuthenticated && user && user._id) {
+        await fetchUnusedServices();
+      }
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -196,7 +210,17 @@ export default function BookingSelectServiceScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView 
+        style={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
+      >
         {/* Service Source Filter */}
         {unusedServices.length > 0 && (
           <View style={styles.sourceFilterContainer}>

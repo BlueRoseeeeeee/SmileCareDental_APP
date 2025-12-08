@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -85,6 +86,7 @@ export default function BookingSelectDateScreen() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [workingDates, setWorkingDates] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [markedDates, setMarkedDates] = useState({});
 
   useEffect(() => {
@@ -172,6 +174,15 @@ export default function BookingSelectDateScreen() {
     return workingDates.some(d => d.date === dateStr);
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await loadDataAndFetchWorkingDates();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const handleDayPress = (day) => {
     const dateStr = day.dateString;
     
@@ -255,7 +266,17 @@ export default function BookingSelectDateScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView 
+        style={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
+      >
         {/* Summary Info */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>

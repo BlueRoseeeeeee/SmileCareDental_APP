@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -56,6 +57,7 @@ export default function BookingSelectTimeScreen() {
     evening: []
   });
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [scheduleConfig, setScheduleConfig] = useState(null);
 
   // Helper function để lấy service duration
@@ -95,6 +97,16 @@ export default function BookingSelectTimeScreen() {
       console.error('Lỗi khi lấy cấu hình schedule:', error);
       // Đặt giá trị mặc định nếu lấy thất bại
       setScheduleConfig({ depositAmount: 50000 });
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await loadDataAndFetchSlots();
+      await loadScheduleConfig();
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -375,7 +387,17 @@ export default function BookingSelectTimeScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView 
+        style={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
+      >
         {/* Summary Info */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>

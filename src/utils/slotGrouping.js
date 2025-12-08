@@ -1,5 +1,5 @@
 /**
- * @author: HoTram (dựa trên logic của TrungNghia & ThuTram)
+ * @author: HoTram 
  * Slot Grouping Utilities - Gộp các slot liên tục dựa trên thời gian dịch vụ
  */
 

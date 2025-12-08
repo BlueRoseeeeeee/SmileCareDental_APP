@@ -3,20 +3,20 @@
  * Payment WebView Screen - Hiển thị VNPay payment trong WebView
  */
 
-import React, { useEffect, useState, useRef } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
   BackHandler,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { WebView } from 'react-native-webview';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const COLORS = {
   primary: '#2596be',
@@ -72,7 +72,7 @@ export default function PaymentWebViewScreen() {
   const handleBackPress = () => {
     Alert.alert(
       'Hủy thanh toán?',
-      'Bạn có chắc muốn hủy thanh toán? Đặt khám của bạn sẽ bị hủy nếu không thanh toán trong 15 phút.',
+      'Bạn có chắc muốn hủy thanh toán? Đặt khám của bạn sẽ bị hủy nếu không thanh toán trong 3 phút.',
       [
         {
           text: 'Tiếp tục thanh toán',
@@ -95,13 +95,13 @@ export default function PaymentWebViewScreen() {
     
     console.log('🌐 WebView URL changed:', url);
 
+    //  FIX: Chỉ detect khi backend ĐÃ redirect về /patient/payment/result
+    // Đây là URL CUỐI CÙNG sau khi backend đã xử lý xong callback
+    // KHÔNG intercept URL callback trung gian để backend có cơ hội xử lý
+    
     // Kiểm tra callback từ Stripe - Backend redirect về /patient/payment/result?payment=success/failed
     if (paymentMethod === 'stripe' && url.includes('/patient/payment/result')) {
-      console.log('✅ Detected Stripe callback URL');
-      
-      if (webViewRef.current) {
-        webViewRef.current.stopLoading();
-      }
+      console.log('✅ Detected Stripe final result URL (after backend processed)');
       
       const urlParams = parseUrlParams(url);
       const paymentStatus = urlParams.payment; // 'success' hoặc 'failed'
@@ -140,32 +140,30 @@ export default function PaymentWebViewScreen() {
       return;
     }
 
-    // Kiểm tra nếu URL chứa callback từ VNPay
-    // VNPay callback format: /payment/vnpay/callback?vnp_ResponseCode=00&...
-    if (url.includes('vnp_ResponseCode') || url.includes('vnp_TxnRef')) {
-      console.log('✅ Detected VNPay callback URL');
-      
-      // Ngăn WebView load trang callback
-      if (webViewRef.current) {
-        webViewRef.current.stopLoading();
-      }
+    // ✅ FIX: Chỉ detect khi backend ĐÃ redirect về /patient/payment/result
+    // KHÔNG intercept URL callback từ VNPay (có vnp_ResponseCode)
+    // Để backend nhận callback, xử lý payment, tạo appointment, rồi mới redirect
+    if (url.includes('/patient/payment/result')) {
+      console.log('✅ Detected VNPay final result URL (after backend processed)');
       
       // Parse URL để lấy query params
       const urlParams = parseUrlParams(url);
-      const responseCode = urlParams.vnp_ResponseCode || urlParams.responseCode;
+      const paymentStatus = urlParams.payment; // 'success', 'failed', hoặc 'error'
+      const responseCode = urlParams.code || '99';
+      const orderIdFromUrl = urlParams.orderId || orderId;
       
+      console.log('📊 VNPay Response - Payment Status:', paymentStatus);
       console.log('📊 VNPay Response Code:', responseCode);
       console.log('📊 URL Params:', urlParams);
 
       // Xác định trạng thái thanh toán
       let status = 'error';
-      if (responseCode === '00') {
+      if (paymentStatus === 'success') {
         status = 'success';
-      } else if (responseCode === '24') {
-        // User cancelled
+      } else if (paymentStatus === 'failed') {
         status = 'failed';
-      } else if (responseCode) {
-        status = 'failed';
+      } else {
+        status = 'error';
       }
 
       // Đóng WebView và chuyển đến màn Payment Result
@@ -174,7 +172,7 @@ export default function PaymentWebViewScreen() {
           pathname: '/payment/result',
           params: {
             status: status,
-            orderId: orderId,
+            orderId: orderIdFromUrl,
             payment: status,
             code: responseCode,
             message: getVNPayMessage(responseCode),
@@ -266,9 +264,12 @@ export default function PaymentWebViewScreen() {
           const { url } = request;
           console.log('🔍 Should load URL:', url);
           
-          // Chặn load trang callback của Stripe
+          // ✅ CHỈ chặn URL RESULT CUỐI CÙNG từ backend (sau khi đã xử lý xong)
+          // KHÔNG chặn URL callback trung gian để backend có cơ hội nhận request
+          
+          // Chặn load trang RESULT của Stripe (đã xử lý xong)
           if (paymentMethod === 'stripe' && url.includes('/patient/payment/result')) {
-            console.log('🚫 Blocking Stripe callback URL load');
+            console.log('✅ Detected Stripe result URL - intercepting');
             
             const urlParams = parseUrlParams(url);
             const paymentStatus = urlParams.payment;
@@ -297,30 +298,28 @@ export default function PaymentWebViewScreen() {
             return false;
           }
           
-          // Chặn load trang callback của VNPay
-          if (url.includes('vnp_ResponseCode') || url.includes('vnp_TxnRef')) {
-            console.log('🚫 Blocking VNPay callback URL load');
+          // Chặn load trang RESULT của VNPay (đã xử lý xong)
+          if (url.includes('/patient/payment/result')) {
+            console.log('✅ Detected VNPay result URL - intercepting');
             
-            // Parse và xử lý callback ngay
             const urlParams = parseUrlParams(url);
-            const responseCode = urlParams.vnp_ResponseCode || urlParams.responseCode;
+            const paymentStatus = urlParams.payment;
+            const responseCode = urlParams.code || '99';
+            const orderIdFromUrl = urlParams.orderId || orderId;
             
             let status = 'error';
-            if (responseCode === '00') {
+            if (paymentStatus === 'success') {
               status = 'success';
-            } else if (responseCode === '24') {
-              status = 'failed';
-            } else if (responseCode) {
+            } else if (paymentStatus === 'failed') {
               status = 'failed';
             }
 
-            // Navigate đến màn result ngay
             setTimeout(() => {
               router.replace({
                 pathname: '/payment/result',
                 params: {
                   status: status,
-                  orderId: orderId,
+                  orderId: orderIdFromUrl,
                   payment: status,
                   code: responseCode,
                   message: getVNPayMessage(responseCode),
@@ -328,10 +327,14 @@ export default function PaymentWebViewScreen() {
               });
             }, 100);
             
-            return false; // Chặn WebView load URL này
+            return false;
           }
           
-          return true; // Cho phép load các URL khác
+          // ✅ CHO PHÉP tất cả URL khác load bình thường
+          // Điều này bao gồm URL callback có vnp_ResponseCode
+          // Backend sẽ nhận được request này và xử lý
+          console.log('✅ Allowing URL to load:', url);
+          return true;
         }}
         onLoadStart={() => setLoading(true)}
         onLoadEnd={() => setLoading(false)}

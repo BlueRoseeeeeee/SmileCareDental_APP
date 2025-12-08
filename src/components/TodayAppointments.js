@@ -25,13 +25,20 @@ const COLORS = {
   blue: '#4da6ff',
 };
 
-export default function TodayAppointments() {
+export default function TodayAppointments({ refresh = false }) {
   const [todayCount, setTodayCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadTodayAppointments();
   }, []);
+
+  // Reload when parent triggers refresh
+  useEffect(() => {
+    if (refresh) {
+      loadTodayAppointments();
+    }
+  }, [refresh]);
 
   const loadTodayAppointments = async () => {
     try {
