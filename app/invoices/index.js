@@ -66,6 +66,7 @@ const TYPE_MAP = {
   consultation: 'Tư vấn',
   emergency: 'Cấp cứu',
   checkup: 'Kiểm tra',
+  exam:'Khám'
 };
 
 const FILTER_OPTIONS = [
