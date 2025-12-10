@@ -48,13 +48,8 @@ const COLORS = {
 };
 
 const STATUS_CONFIG = {
-  draft: { color: COLORS.textLight, text: 'Nháp', icon: 'document-outline' },
-  pending: { color: COLORS.warning, text: 'Chờ thanh toán', icon: 'time-outline' },
   paid: { color: COLORS.success, text: 'Đã thanh toán', icon: 'checkmark-circle-outline' },
-  partial_paid: { color: COLORS.processing, text: 'Thanh toán 1 phần', icon: 'pie-chart-outline' },
-  overdue: { color: COLORS.error, text: 'Quá hạn', icon: 'alert-circle-outline' },
   cancelled: { color: COLORS.textLight, text: 'Đã hủy', icon: 'close-circle-outline' },
-  refunded: { color: COLORS.purple, text: 'Đã hoàn tiền', icon: 'arrow-undo-outline' },
 };
 
 const PAYMENT_METHOD_CONFIG = {
@@ -75,10 +70,7 @@ const TYPE_MAP = {
 
 const FILTER_OPTIONS = [
   { value: 'all', label: 'Tất cả' },
-  { value: 'pending', label: 'Chờ thanh toán' },
   { value: 'paid', label: 'Đã thanh toán' },
-  { value: 'partial_paid', label: 'Thanh toán 1 phần' },
-  { value: 'overdue', label: 'Quá hạn' },
   { value: 'cancelled', label: 'Đã hủy' },
 ];
 
