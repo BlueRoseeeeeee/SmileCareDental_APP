@@ -26,6 +26,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import chatbotService from '../services/chatbotService';
+import { useRouter } from 'expo-router';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -47,6 +48,7 @@ const COLORS = {
 };
 
 export default function ChatBox() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -177,37 +179,32 @@ export default function ChatBox() {
           setMessages((prev) => [...prev, assistantMessage]);
         }
 
-        // Check if response contains booking data for payment redirect
+        //  Check if response contains booking data for payment redirect
         if (response.redirectToPayment && response.bookingData) {
+        
           
-          Alert.alert(
-            'Đặt lịch thành công',
-            'Bạn muốn chuyển đến trang thanh toán không?',
-            [
-              {
-                text: 'Để sau',
-                style: 'cancel',
-              },
-              {
-                text: 'Thanh toán ngay',
-                onPress: () => {
-                  // TODO: Navigate to booking/payment screen
-                  // Store booking data in AsyncStorage (similar to web localStorage)
-                  AsyncStorage.multiSet([
-                    ['booking_service', JSON.stringify(response.bookingData.service)],
-                    ['booking_serviceAddOn', JSON.stringify(response.bookingData.serviceAddOn)],
-                    ['booking_dentist', JSON.stringify(response.bookingData.dentist)],
-                    ['booking_date', response.bookingData.date],
-                    ['booking_slotGroup', JSON.stringify(response.bookingData.slotGroup)],
-                  ]).then(() => {
-                    // Navigate to CreateAppointment screen
-                    // navigation.navigate('CreateAppointment'); // Uncomment when navigation is available
-                    Alert.alert('Thông báo', 'Chức năng đang phát triển. Vui lòng đặt lịch qua trang chính.');
-                  });
-                },
-              },
-            ]
-          );
+          try {
+            // Lưu thông tin đặt lịch vào AsyncStorage
+            await AsyncStorage.multiSet([
+              ['booking_service', JSON.stringify(response.bookingData.service)],
+              ['booking_serviceAddOn', JSON.stringify(response.bookingData.serviceAddOn)],
+              ['booking_dentist', JSON.stringify(response.bookingData.dentist)],
+              ['booking_date', response.bookingData.date],
+              ['booking_slotGroup', JSON.stringify(response.bookingData.slotGroup)],
+            ]);
+          
+            
+            // Đóng chatbot ngay lập tức
+            setIsOpen(false);
+            
+            // Chuyển đến trang tạo phiếu khám sau 0.5s
+            console.log('Navigating to /booking/create-appointment');
+            setTimeout(() => {
+              router.push('/booking/create-appointment');
+            }, 500);
+          } catch (storageError) {
+            Alert.alert('Lỗi', 'Không thể lưu thông tin đặt lịch. Vui lòng thử lại.');
+          }
         }
       } else {
         // Handle non-teeth image or other errors
