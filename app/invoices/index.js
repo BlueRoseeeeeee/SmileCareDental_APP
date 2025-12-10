@@ -570,13 +570,6 @@ export default function InvoicesScreen() {
             {/* Modal Actions */}
             <View style={styles.modalActions}>
               <TouchableOpacity
-                style={styles.modalDownloadButton}
-                onPress={() => handleDownloadPDF(selectedInvoice._id)}
-              >
-                <Ionicons name="download-outline" size={20} color={COLORS.white} />
-                <Text style={styles.modalDownloadButtonText}>Tải PDF</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
                 style={styles.modalCloseButton}
                 onPress={() => setDetailModalVisible(false)}
               >
