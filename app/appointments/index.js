@@ -51,7 +51,6 @@ const COLORS = {
 };
 
 const STATUS_CONFIG = {
-  pending: { color: COLORS.gold, text: 'Chờ xác nhận', icon: 'time-outline' },
   confirmed: { color: COLORS.blue, text: 'Đã xác nhận', icon: 'checkmark-circle-outline' },
   'checked-in': { color: COLORS.cyan, text: 'Đã check-in', icon: 'log-in-outline' },
   'in-progress': { color: '#9c27b0', text: 'Đang khám', icon: 'medical-outline' },
@@ -63,7 +62,6 @@ const STATUS_CONFIG = {
 
 const FILTER_OPTIONS = [
   { value: 'all', label: 'Tất cả' },
-  { value: 'pending', label: 'Chờ xác nhận' },
   { value: 'confirmed', label: 'Đã xác nhận' },
   { value: 'checked-in', label: 'Đã check-in' },
   { value: 'in-progress', label: 'Đang khám' },

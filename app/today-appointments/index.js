@@ -43,7 +43,6 @@ const COLORS = {
 };
 
 const STATUS_CONFIG = {
-  pending: { color: COLORS.gold, text: 'Chờ xác nhận', icon: 'time-outline' },
   confirmed: { color: COLORS.blue, text: 'Đã xác nhận', icon: 'checkmark-circle-outline' },
   'checked-in': { color: COLORS.cyan, text: 'Đã check-in', icon: 'log-in-outline' },
   completed: { color: COLORS.green, text: 'Hoàn thành', icon: 'checkmark-done-outline' },
