@@ -25,7 +25,7 @@ appointmentApi.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error('Error getting token:', error);
+      console.log('Error getting token:', error);
     }
     return config;
   },
@@ -54,12 +54,12 @@ const appointmentService = {
    */
   reserveAppointment: async (reservationData) => {
     try {
-      console.log('📤 [appointmentService] Reserve appointment request:', reservationData);
+      console.log(' [appointmentService] Reserve appointment request:', reservationData);
       const response = await appointmentApi.post('/appointments/reserve', reservationData);
-      console.log('📥 [appointmentService] Reserve appointment response:', response.data);
+      console.log(' [appointmentService] Reserve appointment response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ [appointmentService] Reserve appointment error:', error);
+      console.log(' [appointmentService] Reserve appointment error:', error);
       throw error;
     }
   },
@@ -71,12 +71,12 @@ const appointmentService = {
    */
   createOfflineAppointment: async (appointmentData) => {
     try {
-      console.log('📤 [appointmentService] Create offline appointment request:', appointmentData);
+      console.log(' [appointmentService] Create offline appointment request:', appointmentData);
       const response = await appointmentApi.post('/appointments/create-offline', appointmentData);
-      console.log('📥 [appointmentService] Create offline appointment response:', response.data);
+      console.log(' [appointmentService] Create offline appointment response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ [appointmentService] Create offline appointment error:', error);
+      console.log('[appointmentService] Create offline appointment error:', error);
       throw error;
     }
   },
@@ -97,7 +97,7 @@ const appointmentService = {
       const response = await appointmentApi.get(url);
       return response.data;
     } catch (error) {
-      console.error('❌ [appointmentService] Get my appointments error:', error);
+      console.log('[appointmentService] Get my appointments error:', error);
       throw error;
     }
   },
@@ -112,7 +112,7 @@ const appointmentService = {
       const response = await appointmentApi.get(`/appointments/${appointmentId}`);
       return response.data;
     } catch (error) {
-      console.error('❌ [appointmentService] Get appointment by ID error:', error);
+      console.log(' [appointmentService] Get appointment by ID error:', error);
       throw error;
     }
   },
@@ -127,7 +127,7 @@ const appointmentService = {
       const response = await appointmentApi.get(`/appointments/code/${appointmentCode}`);
       return response.data;
     } catch (error) {
-      console.error('❌ [appointmentService] Get appointment by code error:', error);
+      console.log('[appointmentService] Get appointment by code error:', error);
       throw error;
     }
   },
@@ -145,7 +145,7 @@ const appointmentService = {
       });
       return response.data;
     } catch (error) {
-      console.error('❌ [appointmentService] Cancel appointment error:', error);
+      console.log('[appointmentService] Cancel appointment error:', error);
       throw error;
     }
   },
@@ -165,7 +165,7 @@ const appointmentService = {
       console.log('[appointmentService] Request cancellation response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('[appointmentService] Request cancellation error:', error);
+      console.log('[appointmentService] Request cancellation error:', error);
       throw error;
     }
   },
@@ -183,7 +183,7 @@ const appointmentService = {
       });
       return response.data;
     } catch (error) {
-      console.error('❌ [appointmentService] Check-in appointment error:', error);
+      console.log('[appointmentService] Check-in appointment error:', error);
       throw error;
     }
   },
@@ -201,7 +201,7 @@ const appointmentService = {
       });
       return response.data;
     } catch (error) {
-      console.error('❌ [appointmentService] Complete appointment error:', error);
+      console.log('[appointmentService] Complete appointment error:', error);
       throw error;
     }
   },

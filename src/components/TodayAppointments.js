@@ -59,7 +59,7 @@ export default function TodayAppointments({ refresh = false }) {
         setTodayCount(0);
       }
     } catch (error) {
-      console.error('Failed to load today appointments:', error);
+      console.log('Failed to load today appointments:', error);
       setTodayCount(0);
     } finally {
       setLoading(false);
