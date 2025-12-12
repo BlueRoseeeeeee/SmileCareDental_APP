@@ -4,19 +4,19 @@
  * Logic: Hiển thị số lịch khám trong ngày hôm nay, click để xem chi tiết
  */
 
-import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import dayjs from 'dayjs';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import appointmentService from '../services/appointmentService';
-import dayjs from 'dayjs';
 
 const COLORS = {
   primary: '#2596be',

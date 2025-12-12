@@ -2,8 +2,8 @@
  * @author: HoTram
  * Appointment Service - Quản lý đặt lịch khám
  */
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { APPOINTMENT_URL } from '../config/apiConfig';
 import { handleTokenExpired } from '../utils/authUtils';
 
@@ -209,3 +209,4 @@ const appointmentService = {
 
 export default appointmentService;
 export { appointmentApi };
+
