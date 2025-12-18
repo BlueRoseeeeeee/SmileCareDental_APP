@@ -83,10 +83,10 @@ export default function BookingSelectDentistScreen() {
       setService(serviceData);
       setServiceAddOn(serviceAddOnData);
 
-      console.log('📦 Service:', serviceData.name);
-      console.log('📦 AddOn:', serviceAddOnData?.name || 'none');
-      console.log('🏥 Service ID:', serviceData._id);
-      console.log('🏥 Allowed RoomTypes:', serviceData.allowedRoomTypes);
+      console.log('Service:', serviceData.name);
+      console.log('AddOn:', serviceAddOnData?.name || 'none');
+      console.log('Service ID:', serviceData._id);
+      console.log('Allowed RoomTypes:', serviceData.allowedRoomTypes);
 
       // Load exam dentist if recordId exists
       if (recordId) {
@@ -99,34 +99,34 @@ export default function BookingSelectDentistScreen() {
       if (serviceAddOnData?.durationMinutes) {
         // User đã chọn addon cụ thể → dùng duration của addon đó
         serviceDuration = serviceAddOnData.durationMinutes;
-        console.log('🎯 Using selected addon duration:', serviceDuration, 'minutes');
+        console.log('Using selected addon duration:', serviceDuration, 'minutes');
       } else if (serviceData.serviceAddOns && serviceData.serviceAddOns.length > 0) {
         // Không chọn addon → lấy duration dài nhất
         const maxDuration = Math.max(...serviceData.serviceAddOns.map(addon => addon.durationMinutes || 15));
         serviceDuration = maxDuration;
-        console.log('🎯 Using max addon duration:', serviceDuration, 'minutes (from', serviceData.serviceAddOns.length, 'addons)');
+        console.log('Using max addon duration:', serviceDuration, 'minutes (from', serviceData.serviceAddOns.length, 'addons)');
       } else if (serviceData.durationMinutes) {
         // Fallback to service default duration
         serviceDuration = serviceData.durationMinutes;
-        console.log('🎯 Using service default duration:', serviceDuration, 'minutes');
+        console.log('Using service default duration:', serviceDuration, 'minutes');
       }
 
       // Fetch dentists
       await fetchDentists(serviceDuration, serviceData._id);
     } catch (error) {
-      console.error('Error loading service:', error);
+      console.log('Error loading service:', error);
       Alert.alert('Lỗi', 'Không thể tải thông tin dịch vụ');
     }
   };
 
   const loadExamDentistFromRecord = async (recordId) => {
     try {
-      console.log('🔍 Loading exam dentist from record:', recordId);
+      console.log('Loading exam dentist from record:', recordId);
       const response = await recordService.getRecordById(recordId);
       
       if (response.success && response.data && response.data.dentistId) {
         setExamDentistId(response.data.dentistId);
-        console.log('✅ Exam dentist ID:', response.data.dentistId, '| Name:', response.data.dentistName);
+        console.log('Exam dentist ID:', response.data.dentistId, '| Name:', response.data.dentistName);
       }
     } catch (error) {
       console.warn('⚠️ Could not load exam dentist from record:', error.message);
@@ -139,7 +139,7 @@ export default function BookingSelectDentistScreen() {
       setLoading(true);
       
       const response = await slotService.getDentistsWithNearestSlot(serviceDuration, serviceId);
-      console.log('👨‍⚕️ Dentists API response:', response);
+      console.log('Dentists API response:', response);
       
       if (response.success && response.data.dentists) {
         setDentists(response.data.dentists);
@@ -149,11 +149,11 @@ export default function BookingSelectDentistScreen() {
           Alert.alert('Thông báo', 'Hiện tại chưa có nha sỹ nào có lịch khám phù hợp với dịch vụ này');
         }
       } else {
-        console.error('Invalid API response format:', response);
+        console.log('Invalid API response format:', response);
         Alert.alert('Lỗi', 'Không thể tải danh sách nha sỹ');
       }
     } catch (error) {
-      console.error('Error fetching dentists:', error);
+      console.log('Error fetching dentists:', error);
       Alert.alert('Lỗi kết nối', error.message || 'Không thể kết nối đến server');
     } finally {
       setLoading(false);

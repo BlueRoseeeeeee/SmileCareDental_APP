@@ -126,7 +126,7 @@ export default function ProfileScreen() {
         await handleUploadAvatar(result.assets[0]);
       }
     } catch (error) {
-      console.error('Error picking image:', error);
+      console.log('Error picking image:', error);
       Alert.alert('Lỗi', 'Không thể chọn ảnh!');
     }
   };

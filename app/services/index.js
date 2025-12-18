@@ -51,7 +51,7 @@ export default function ServicesScreen() {
         setServices(activeServices);
       }
     } catch (error) {
-      console.error('Error fetching services:', error);
+      console.log('Error fetching services:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);

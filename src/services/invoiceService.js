@@ -27,7 +27,7 @@ invoiceApi.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error('Error getting token:', error);
+      console.log('Error getting token:', error);
     }
     return config;
   },
@@ -64,13 +64,13 @@ const invoiceService = {
       if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
       const url = `/invoice/my-invoices${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-      console.log('📤 [invoiceService] Get my invoices request:', url);
+      console.log('[invoiceService] Get my invoices request:', url);
       
       const response = await invoiceApi.get(url);
-      console.log('📥 [invoiceService] Get my invoices response:', response.data);
+      console.log('[invoiceService] Get my invoices response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ [invoiceService] Get my invoices error:', error);
+      console.log('[invoiceService] Get my invoices error:', error);
       throw error;
     }
   },
@@ -82,12 +82,12 @@ const invoiceService = {
    */
   getInvoiceById: async (invoiceId) => {
     try {
-      console.log('📤 [invoiceService] Get invoice by ID:', invoiceId);
+      console.log('[invoiceService] Get invoice by ID:', invoiceId);
       const response = await invoiceApi.get(`/invoice/${invoiceId}`);
-      console.log('📥 [invoiceService] Get invoice by ID response:', response.data);
+      console.log('[invoiceService] Get invoice by ID response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ [invoiceService] Get invoice by ID error:', error);
+      console.log('[invoiceService] Get invoice by ID error:', error);
       throw error;
     }
   },
@@ -102,7 +102,7 @@ const invoiceService = {
       const response = await invoiceApi.get(`/invoice/number/${invoiceNumber}`);
       return response.data;
     } catch (error) {
-      console.error('❌ [invoiceService] Get invoice by number error:', error);
+      console.log('[invoiceService] Get invoice by number error:', error);
       throw error;
     }
   },
@@ -119,7 +119,7 @@ const invoiceService = {
       });
       return response.data;
     } catch (error) {
-      console.error('❌ [invoiceService] Download invoice PDF error:', error);
+      console.log('[invoiceService] Download invoice PDF error:', error);
       throw error;
     }
   },
@@ -139,7 +139,7 @@ const invoiceService = {
       const response = await invoiceApi.get(url);
       return response.data;
     } catch (error) {
-      console.error('❌ [invoiceService] Get invoice stats error:', error);
+      console.log('[invoiceService] Get invoice stats error:', error);
       throw error;
     }
   },

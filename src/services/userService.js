@@ -57,7 +57,7 @@ const createUserClient = () => {
       
       return { data };
     } catch (error) {
-      console.error('User API Error:', error);
+      console.log('User API Error:', error);
       throw error;
     }
   };
@@ -81,7 +81,7 @@ const userService = {
       const response = await userClient.get('/user/public/dentists');
       return response.data;
     } catch (error) {
-      console.error('Get public dentists error:', error);
+      console.log('Get public dentists error:', error);
       throw error;
     }
   },
@@ -95,7 +95,7 @@ const userService = {
       const response = await userClient.put('/user/profile', updateData);
       return response.data;
     } catch (error) {
-      console.error('Update profile error:', error);
+      console.log('Update profile error:', error);
       throw error;
     }
   },
@@ -137,7 +137,7 @@ const userService = {
 
       return data;
     } catch (error) {
-      console.error('Update avatar error:', error);
+      console.log('Update avatar error:', error);
       throw error;
     }
   },
@@ -150,7 +150,7 @@ const userService = {
       const response = await userClient.get(`/user/${userId}`);
       return response.data;
     } catch (error) {
-      console.error('Get user by ID error:', error);
+      console.log('Get user by ID error:', error);
       throw error;
     }
   },

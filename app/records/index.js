@@ -110,23 +110,23 @@ export default function RecordsScreen() {
         setLoading(true);
       }
 
-      console.log('🔍 [DEBUG] Loading records for user._id:', user._id);
+      console.log('[DEBUG] Loading records for user._id:', user._id);
       const response = await recordService.getRecordsByPatient(user._id);
-      console.log('🔍 [DEBUG] Records response:', response);
+      console.log('[DEBUG] Records response:', response);
 
       if (response.success && response.data) {
-        console.log('🔍 [DEBUG] Records count:', response.data.length);
+        console.log('[DEBUG] Records count:', response.data.length);
         // Sort by createdAt descending (newest first)
         const sortedData = response.data.sort((a, b) =>
           dayjs(b.createdAt).diff(dayjs(a.createdAt))
         );
         setRecords(sortedData);
       } else {
-        console.log('⚠️ [DEBUG] No records or failed response');
+        console.log('[DEBUG] No records or failed response');
         setRecords([]);
       }
     } catch (error) {
-      console.error('❌ Load records error:', error);
+      console.log('Load records error:', error);
       if (!silent) {
         Alert.alert('Lỗi', 'Không thể tải danh sách hồ sơ');
       }

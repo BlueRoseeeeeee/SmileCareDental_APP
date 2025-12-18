@@ -99,7 +99,7 @@ export default function TodayAppointmentsScreen() {
         setAppointments([]);
       }
     } catch (error) {
-      console.error('❌ Load today appointments error:', error);
+      console.log('Load today appointments error:', error);
       Alert.alert('Lỗi', 'Không thể tải danh sách lịch khám');
       setAppointments([]);
     } finally {
@@ -144,7 +144,7 @@ export default function TodayAppointmentsScreen() {
                 Alert.alert('Lỗi', response.message || 'Hủy lịch khám thất bại');
               }
             } catch (error) {
-              console.error('❌ Cancel appointment error:', error);
+              console.log('Cancel appointment error:', error);
               Alert.alert('Lỗi', 'Không thể hủy lịch khám');
             }
           },

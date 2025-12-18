@@ -66,7 +66,7 @@ export default function PaymentSelectionScreen() {
         setScheduleConfig(response.data);
       }
     } catch (error) {
-      console.error('Lỗi khi lấy cấu hình schedule:', error);
+      console.log('Lỗi khi lấy cấu hình schedule:', error);
     }
   };
 
@@ -84,9 +84,9 @@ export default function PaymentSelectionScreen() {
       const reservationData = JSON.parse(reservationStr);
       setReservation(reservationData);
       
-      console.log('📦 Loaded reservation:', reservationData);
+      console.log('Loaded reservation:', reservationData);
     } catch (error) {
-      console.error('Error loading reservation:', error);
+      console.log('Error loading reservation:', error);
       Alert.alert('Lỗi', 'Không thể tải thông tin đặt khám');
       router.replace('/booking/select-service');
     }

@@ -41,7 +41,7 @@ export default function HomeScreen() {
       setLoading(true);
       await Promise.all([fetchWorkingHours(), fetchWorkingDays()]);
     } catch (error) {
-      console.error('Error fetching working info:', error);
+      console.log('Error fetching working info:', error);
     } finally {
       setLoading(false);
     }
@@ -52,7 +52,7 @@ export default function HomeScreen() {
     try {
       await Promise.all([fetchWorkingHours(), fetchWorkingDays()]);
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      console.log('Error refreshing data:', error);
     } finally {
       setRefreshing(false);
     }
@@ -87,7 +87,7 @@ export default function HomeScreen() {
         setWorkingHours(activeShifts);
       }
     } catch (error) {
-      console.error('Error fetching working hours:', error);
+      console.log('Error fetching working hours:', error);
       setWorkingHours([]);
     }
   };
@@ -123,7 +123,7 @@ export default function HomeScreen() {
         }
       }
     } catch (error) {
-      console.error('Error fetching working days:', error);
+      console.log('Error fetching working days:', error);
       setWorkingDaysText('');
     }
   };

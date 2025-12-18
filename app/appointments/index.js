@@ -138,7 +138,7 @@ export default function AppointmentsScreen() {
         setAppointments([]);
       }
     } catch (error) {
-      console.error('❌ Load appointments error:', error);
+      console.log('Load appointments error:', error);
       Alert.alert('Lỗi', 'Không thể tải danh sách lịch khám');
       setAppointments([]);
     } finally {
@@ -270,7 +270,7 @@ export default function AppointmentsScreen() {
         Alert.alert('Lỗi', response.message || 'Không thể gửi yêu cầu hủy');
       }
     } catch (error) {
-      console.error('❌ Request cancellation error:', error);
+      console.log('Request cancellation error:', error);
       Alert.alert('Lỗi', error.response?.data?.message || 'Gửi yêu cầu hủy thất bại');
     }
   };

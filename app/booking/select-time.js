@@ -91,10 +91,10 @@ export default function BookingSelectTimeScreen() {
       const response = await scheduleConfigService.getConfig();
       if (response.success && response.data) {
         setScheduleConfig(response.data);
-        console.log('📋 Cấu hình schedule đã tải:', response.data);
+        console.log('Cấu hình schedule đã tải:', response.data);
       }
     } catch (error) {
-      console.error('Lỗi khi lấy cấu hình schedule:', error);
+      console.log('Lỗi khi lấy cấu hình schedule:', error);
       // Đặt giá trị mặc định nếu lấy thất bại
       setScheduleConfig({ depositAmount: 50000 });
     }
@@ -133,15 +133,15 @@ export default function BookingSelectTimeScreen() {
       setDentist(dentistData);
       setSelectedDate(savedDate);
 
-      console.log('📦 Service:', serviceData.name);
-      console.log('📦 AddOn:', serviceAddOnData?.name || 'none');
-      console.log('👨‍⚕️ Dentist:', dentistData.fullName);
-      console.log('📅 Date:', savedDate);
+      console.log('Service:', serviceData.name);
+      console.log('AddOn:', serviceAddOnData?.name || 'none');
+      console.log('Dentist:', dentistData.fullName);
+      console.log('Date:', savedDate);
 
       // Fetch available slots với thông tin service
       await fetchAvailableSlots(dentistData._id, savedDate, serviceData);
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.log('Error loading data:', error);
       Alert.alert('Lỗi', 'Không thể tải thông tin đặt lịch');
     }
   };
@@ -150,8 +150,8 @@ export default function BookingSelectTimeScreen() {
     try {
       setLoading(true);
       
-      console.log('🏥 Service ID:', serviceData?._id);
-      console.log('🏥 Allowed RoomTypes:', serviceData?.allowedRoomTypes);
+      console.log('Service ID:', serviceData?._id);
+      console.log('Allowed RoomTypes:', serviceData?.allowedRoomTypes);
       
       // Gọi API lấy slot của nha sỹ trong ngày đã chọn
       const response = await slotService.getDentistSlotsFuture(dentistId, {
@@ -173,7 +173,7 @@ export default function BookingSelectTimeScreen() {
         if (selectedServiceAddOn) {
           // Trường hợp 1: User đã chọn addon cụ thể
           serviceDuration = selectedServiceAddOn.durationMinutes;
-          console.log('🎯 Dùng duration addon đã chọn:', serviceDuration, 'phút từ', selectedServiceAddOn.name);
+          console.log('Dùng duration addon đã chọn:', serviceDuration, 'phút từ', selectedServiceAddOn.name);
         } else if (serviceData?.serviceAddOns && serviceData.serviceAddOns.length > 0) {
           // Trường hợp 2: Không chọn addon → dùng duration addon DÀI NHẤT
           const longestAddon = serviceData.serviceAddOns.reduce((longest, addon) => {
@@ -181,16 +181,16 @@ export default function BookingSelectTimeScreen() {
           }, serviceData.serviceAddOns[0]);
           
           serviceDuration = longestAddon.durationMinutes;
-          console.log('🎯 Không chọn addon → Dùng duration addon DÀI NHẤT:', serviceDuration, 'phút từ', longestAddon.name);
+          console.log('Không chọn addon → Dùng duration addon DÀI NHẤT:', serviceDuration, 'phút từ', longestAddon.name);
         } else if (serviceData?.durationMinutes) {
           // Trường hợp 3: Fallback về duration của service
           serviceDuration = serviceData.durationMinutes;
-          console.log('🎯 Dùng duration service:', serviceDuration, 'phút');
+          console.log('Dùng duration service:', serviceDuration, 'phút');
         }
         
         const slotDuration = 15; // Duration mặc định của slot (phải khớp với backend config)
         
-        console.log('🔍 Service:', serviceData?.name, '| AddOn đã chọn:', selectedServiceAddOn?.name || 'không có', '| Duration cuối:', serviceDuration, 'phút');
+        console.log('Service:', serviceData?.name, '| AddOn đã chọn:', selectedServiceAddOn?.name || 'không có', '| Duration cuối:', serviceDuration, 'phút');
         
         let allSlots = [];
         
@@ -209,7 +209,7 @@ export default function BookingSelectTimeScreen() {
         
         // Filter chỉ lấy slot active
         const activeSlots = allSlots.filter(slot => slot.isActive === true);
-        console.log('✅ Slot active:', activeSlots.length, '/', allSlots.length);
+        console.log('Slot active:', activeSlots.length, '/', allSlots.length);
         
         // Debug: Hiển thị phân bố trạng thái slot
         const statusCount = activeSlots.reduce((acc, s) => {
@@ -225,7 +225,7 @@ export default function BookingSelectTimeScreen() {
           evening: activeSlots.filter(s => s.shiftName === 'Ca Tối')
         };
         
-        console.log('📦 Slot theo ca:', {
+        console.log('Slot theo ca:', {
           morning: slotsByShift.morning.length,
           afternoon: slotsByShift.afternoon.length,
           evening: slotsByShift.evening.length
@@ -238,7 +238,7 @@ export default function BookingSelectTimeScreen() {
           evening: groupConsecutiveSlots(slotsByShift.evening, serviceDuration, slotDuration)
         };
         
-        console.log('✨ Slot đã gộp:', groupedSlots);
+        console.log('Slot đã gộp:', groupedSlots);
         
         setAvailableSlotGroups(groupedSlots);
         
@@ -246,17 +246,17 @@ export default function BookingSelectTimeScreen() {
                            groupedSlots.afternoon.length + 
                            groupedSlots.evening.length;
         
-        console.log('🎯 Tổng nhóm slot tạo:', totalGroups);
+        console.log('Tổng nhóm slot tạo:', totalGroups);
         
         if (totalGroups === 0) {
           Alert.alert('Thông báo', `Không có khung giờ phù hợp (cần ${Math.ceil(serviceDuration/slotDuration)} slot liên tục)`);
         }
       } else {
-        console.error('Invalid API response format:', response);
+        console.log('Invalid API response format:', response);
         Alert.alert('Lỗi', 'Không thể tải danh sách giờ khám');
       }
     } catch (error) {
-      console.error('Error fetching available slots:', error);
+      console.log('Error fetching available slots:', error);
       Alert.alert('Lỗi kết nối', error.message || 'Không thể kết nối đến server');
     } finally {
       setLoading(false);

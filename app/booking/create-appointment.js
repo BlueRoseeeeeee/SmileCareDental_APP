@@ -85,10 +85,10 @@ export default function CreateAppointmentScreen() {
       const response = await scheduleConfigService.getConfig();
       if (response.success && response.data) {
         setScheduleConfig(response.data);
-        console.log('📋 Cấu hình schedule đã tải:', response.data);
+        console.log('Cấu hình schedule đã tải:', response.data);
       }
     } catch (error) {
-      console.error('Lỗi khi lấy cấu hình schedule:', error);
+      console.log('Lỗi khi lấy cấu hình schedule:', error);
       // Giữ giá trị mặc định nếu lỗi
       setScheduleConfig({ depositAmount: 50000 });
     }
@@ -120,7 +120,7 @@ export default function CreateAppointmentScreen() {
       setSelectedDate(dayjs(savedDate));
       setSelectedSlotGroup(slotGroupData);
 
-      console.log('📦 Loaded booking data:', {
+      console.log('Loaded booking data:', {
         service: serviceData.name,
         serviceAddOn: serviceAddOnData?.name || 'none',
         dentist: dentistData.fullName,
@@ -128,7 +128,7 @@ export default function CreateAppointmentScreen() {
         slotGroup: slotGroupData.displayTime
       });
     } catch (error) {
-      console.error('Error loading booking data:', error);
+      console.log('Error loading booking data:', error);
       Alert.alert('Lỗi', 'Không thể tải thông tin đặt lịch');
       router.replace('/booking/select-service');
     }
@@ -181,14 +181,14 @@ export default function CreateAppointmentScreen() {
               onPress: () => {
                 // Kiểm tra nếu backend trả về paymentUrl
                 if (response.data.paymentUrl) {
-                  console.log('🔄 Redirecting to payment URL:', response.data.paymentUrl);
+                  console.log('Redirecting to payment URL:', response.data.paymentUrl);
                   Linking.openURL(response.data.paymentUrl).catch(err => {
-                    console.error('Failed to open URL:', err);
+                    console.log('Failed to open URL:', err);
                     Alert.alert('Lỗi', 'Không thể mở trang thanh toán');
                   });
                 } else {
                   // Navigate đến payment selection
-                  console.log('📍 Navigating to payment selection');
+                  console.log('Navigating to payment selection');
                   router.push('/payment/select');
                 }
               }
@@ -199,7 +199,7 @@ export default function CreateAppointmentScreen() {
         Alert.alert('Lỗi', response.message || 'Có lỗi xảy ra khi đặt chỗ');
       }
     } catch (error) {
-      console.error('Error creating reservation:', error);
+      console.log('Error creating reservation:', error);
       Alert.alert(
         'Lỗi',
         error.response?.data?.message || 'Có lỗi xảy ra khi đặt chỗ'

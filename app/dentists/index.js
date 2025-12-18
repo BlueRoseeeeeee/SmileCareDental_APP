@@ -50,7 +50,7 @@ export default function DentistsScreen() {
         setDentists(response.dentists);
       }
     } catch (error) {
-      console.error('Error fetching dentists:', error);
+      console.log('Error fetching dentists:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);

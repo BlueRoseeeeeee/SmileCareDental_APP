@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await authService.logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.log('Logout error:', error);
     } finally {
       setIsAuthenticated(false);
       setUser(null);

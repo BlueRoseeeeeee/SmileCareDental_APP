@@ -46,7 +46,7 @@ const recordService = {
       const response = await recordApi.get(`/api/record/patient/${patientId}/unused-services`);
       return response;
     } catch (error) {
-      console.error('❌ Error fetching unused services:', error);
+      console.log('Error fetching unused services:', error);
       throw error;
     }
   },
@@ -60,7 +60,7 @@ const recordService = {
       );
       return response;
     } catch (error) {
-      console.error('❌ Error fetching treatment indications:', error);
+      console.log('Error fetching treatment indications:', error);
       throw error;
     }
   },
@@ -71,7 +71,7 @@ const recordService = {
       const response = await recordApi.get(`/api/record/${recordId}`);
       return response;
     } catch (error) {
-      console.error('❌ Error fetching record:', error);
+      console.log('Error fetching record:', error);
       throw error;
     }
   },
@@ -82,7 +82,7 @@ const recordService = {
       const response = await recordApi.get(`/api/record/patient/${patientId}`, { limit });
       return response;
     } catch (error) {
-      console.error('❌ Error fetching patient records:', error);
+      console.log('Error fetching patient records:', error);
       throw error;
     }
   },

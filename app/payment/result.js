@@ -64,9 +64,9 @@ export default function PaymentResultScreen() {
         'booking_reservation',
         'booking_examRecordId',
       ]);
-      console.log('✅ Cleared booking data from AsyncStorage');
+      console.log('Cleared booking data from AsyncStorage');
     } catch (error) {
-      console.error('Error clearing booking data:', error);
+      console.log('Error clearing booking data:', error);
     }
   };
 

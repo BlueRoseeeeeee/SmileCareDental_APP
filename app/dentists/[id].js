@@ -54,7 +54,7 @@ export default function DentistDetail() {
         setError('Không tìm thấy thông tin nha sĩ');
       }
     } catch (error) {
-      console.error('Error fetching dentist detail:', error);
+      console.log('Error fetching dentist detail:', error);
       setError('Có lỗi xảy ra khi tải thông tin nha sĩ');
     } finally {
       setLoading(false);

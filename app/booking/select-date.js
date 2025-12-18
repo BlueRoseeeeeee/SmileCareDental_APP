@@ -114,22 +114,22 @@ export default function BookingSelectDateScreen() {
       setServiceAddOn(serviceAddOnData);
       setDentist(dentistData);
 
-      console.log('📦 Service:', serviceData.name);
-      console.log('📦 AddOn:', serviceAddOnData?.name || 'none');
-      console.log('👨‍⚕️ Dentist:', dentistData.fullName);
+      console.log('Service:', serviceData.name);
+      console.log('AddOn:', serviceAddOnData?.name || 'none');
+      console.log('Dentist:', dentistData.fullName);
 
       // Calculate service duration (prioritize addon)
       const serviceDuration = serviceAddOnData?.durationMinutes 
                            || serviceData?.durationMinutes 
                            || 15;
       
-      console.log('🎯 Fetching working dates with duration:', serviceDuration, 'minutes');
-      console.log('🏥 Service ID:', serviceData._id);
+      console.log('Fetching working dates with duration:', serviceDuration, 'minutes');
+      console.log('Service ID:', serviceData._id);
 
       // Fetch working dates
       await fetchWorkingDates(dentistData._id, serviceDuration, serviceData._id);
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.log('Error loading data:', error);
       Alert.alert('Lỗi', 'Không thể tải thông tin đặt lịch');
     }
   };
@@ -139,7 +139,7 @@ export default function BookingSelectDateScreen() {
       setLoading(true);
       
       const response = await slotService.getDentistWorkingDates(dentistId, serviceDuration, serviceId);
-      console.log('📅 Working dates API response:', response);
+      console.log('Working dates API response:', response);
       
       if (response.success && response.data.workingDates) {
         const dates = response.data.workingDates;
@@ -158,11 +158,11 @@ export default function BookingSelectDateScreen() {
           Alert.alert('Thông báo', 'Nha sỹ này hiện chưa có lịch làm việc trong thời gian tới');
         }
       } else {
-        console.error('Invalid API response format:', response);
+        console.log('Invalid API response format:', response);
         Alert.alert('Lỗi', 'Không thể tải lịch làm việc');
       }
     } catch (error) {
-      console.error('Error fetching working dates:', error);
+      console.log('Error fetching working dates:', error);
       Alert.alert('Lỗi kết nối', error.message || 'Không thể kết nối đến server');
     } finally {
       setLoading(false);

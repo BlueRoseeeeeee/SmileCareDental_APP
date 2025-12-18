@@ -56,7 +56,7 @@ export default function ServiceAddOnsScreen() {
         setError('Không tìm thấy dịch vụ');
       }
     } catch (error) {
-      console.error('Error fetching service details:', error);
+      console.log('Error fetching service details:', error);
       setError('Có lỗi xảy ra khi tải dịch vụ');
     } finally {
       setLoading(false);

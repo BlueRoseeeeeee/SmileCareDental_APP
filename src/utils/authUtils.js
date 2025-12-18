@@ -28,7 +28,7 @@ export const handleTokenExpired = async () => {
             try {
               router.replace('/(auth)/login');
             } catch (error) {
-              console.error('Navigation error:', error);
+              console.log('Navigation error:', error);
             }
           },
         },
@@ -36,7 +36,7 @@ export const handleTokenExpired = async () => {
       { cancelable: false }
     );
   } catch (error) {
-    console.error('❌ Error handling token expiration:', error);
+    console.log('Error handling token expiration:', error);
   }
 };
 

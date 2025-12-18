@@ -67,7 +67,7 @@ export default function BookingSelectServiceScreen() {
         Alert.alert('Lỗi', 'Không thể tải danh sách dịch vụ');
       }
     } catch (error) {
-      console.error('Error fetching services:', error);
+      console.log('Error fetching services:', error);
       Alert.alert('Lỗi', error.message || 'Không thể kết nối đến server');
     } finally {
       setLoading(false);
@@ -85,7 +85,7 @@ export default function BookingSelectServiceScreen() {
         }
       }
     } catch (error) {
-      console.error('Error fetching unused services:', error);
+      console.log('Error fetching unused services:', error);
     }
   };
 

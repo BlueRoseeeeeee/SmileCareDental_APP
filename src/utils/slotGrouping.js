@@ -113,7 +113,7 @@ export const groupConsecutiveSlots = (slots, serviceDurationMinutes, slotDuratio
       const startTimeToUse = firstSlot.startTimeVN || firstSlot.startTime;
       const endTimeToUse = lastSlot.endTimeVN || lastSlot.endTime;
       
-      console.log('🎯 Tạo nhóm slot:', {
+      console.log('Tạo nhóm slot:', {
         firstSlotId: firstSlot._id,
         lastSlotId: lastSlot._id,
         startTimeToUse,
@@ -147,9 +147,9 @@ export const groupConsecutiveSlots = (slots, serviceDurationMinutes, slotDuratio
     }
   }
   
-  console.log('📦 Tổng số nhóm slot tạo:', slotGroups.length);
-  console.log('✅ Nhóm khả dụng:', slotGroups.filter(g => g.isAvailable).length);
-  console.log('❌ Nhóm không khả dụng:', slotGroups.filter(g => !g.isAvailable).length);
+  console.log('Tổng số nhóm slot tạo:', slotGroups.length);
+  console.log('Nhóm khả dụng:', slotGroups.filter(g => g.isAvailable).length);
+  console.log('Nhóm không khả dụng:', slotGroups.filter(g => !g.isAvailable).length);
   
   return slotGroups;
 };
@@ -164,7 +164,7 @@ const areSlotsConsecutive = (slot1, slot2) => {
   
   if (room1Id && room2Id) {
     if (room1Id.toString() !== room2Id.toString()) {
-      console.log(`❌ Slot không cùng phòng: ${room1Id} vs ${room2Id}`);
+      console.log(`Slot không cùng phòng: ${room1Id} vs ${room2Id}`);
       return false;
     }
   }
@@ -176,11 +176,11 @@ const areSlotsConsecutive = (slot1, slot2) => {
   if (subRoom1Id !== subRoom2Id) {
     if (subRoom1Id && subRoom2Id) {
       if (subRoom1Id.toString() !== subRoom2Id.toString()) {
-        console.log(`❌ Slot không cùng phòng con: ${subRoom1Id} vs ${subRoom2Id}`);
+        console.log(`Slot không cùng phòng con: ${subRoom1Id} vs ${subRoom2Id}`);
         return false;
       }
     } else {
-      console.log(`❌ Không khớp phòng con: một có phòng con, một không`);
+      console.log(`Không khớp phòng con: một có phòng con, một không`);
       return false;
     }
   }
@@ -193,7 +193,7 @@ const areSlotsConsecutive = (slot1, slot2) => {
   const isTimeConsecutive = Math.abs(endTime1 - startTime2) <= 1;
   
   if (!isTimeConsecutive) {
-    console.log(`❌ Slot không liên tục về thời gian: khoảng cách = ${Math.abs(endTime1 - startTime2)} phút`);
+    console.log(`Slot không liên tục về thời gian: khoảng cách = ${Math.abs(endTime1 - startTime2)} phút`);
   }
   
   return isTimeConsecutive;

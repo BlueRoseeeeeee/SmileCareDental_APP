@@ -27,7 +27,7 @@ paymentApi.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error('Error getting token:', error);
+      console.log('Error getting token:', error);
     }
     return config;
   },
@@ -56,12 +56,12 @@ const paymentService = {
    */
   createVNPayUrl: async (paymentData) => {
     try {
-      console.log('📤 [paymentService] Create VNPay URL request:', paymentData);
+      console.log('[paymentService] Create VNPay URL request:', paymentData);
       const response = await paymentApi.post('/payments/vnpay/create-url', paymentData);
-      console.log('📥 [paymentService] Create VNPay URL response:', response.data);
+      console.log('[paymentService] Create VNPay URL response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ [paymentService] Create VNPay URL error:', error);
+      console.log('[paymentService] Create VNPay URL error:', error);
       throw error;
     }
   },
@@ -73,12 +73,12 @@ const paymentService = {
    */
   verifyVNPayCallback: async (queryParams) => {
     try {
-      console.log('📤 [paymentService] Verify VNPay callback request:', queryParams);
+      console.log('[paymentService] Verify VNPay callback request:', queryParams);
       const response = await paymentApi.get('/payments/vnpay/callback', { params: queryParams });
-      console.log('📥 [paymentService] Verify VNPay callback response:', response.data);
+      console.log('[paymentService] Verify VNPay callback response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ [paymentService] Verify VNPay callback error:', error);
+      console.log('[paymentService] Verify VNPay callback error:', error);
       throw error;
     }
   },
@@ -93,7 +93,7 @@ const paymentService = {
       const response = await paymentApi.get(`/payments/order/${orderId}`);
       return response.data;
     } catch (error) {
-      console.error('❌ [paymentService] Get payment by orderId error:', error);
+      console.log('[paymentService] Get payment by orderId error:', error);
       throw error;
     }
   },
@@ -108,7 +108,7 @@ const paymentService = {
       const response = await paymentApi.get('/payments/my-payments', { params });
       return response.data;
     } catch (error) {
-      console.error('❌ [paymentService] Get payment history error:', error);
+      console.log('[paymentService] Get payment history error:', error);
       throw error;
     }
   },

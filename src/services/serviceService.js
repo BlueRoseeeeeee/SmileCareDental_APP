@@ -51,7 +51,7 @@ const serviceService = {
         totalPages: response.pagination?.totalPages || 1,
       };
     } catch (error) {
-      console.error('Lỗi fetching services:', error);
+      console.log('Lỗi fetching services:', error);
       throw error;
     }
   },
@@ -65,7 +65,7 @@ const serviceService = {
         total: response.pagination?.total || 0,
       };
     } catch (error) {
-      console.error('Lỗi fetching services:', error);
+      console.log('Lỗi fetching services:', error);
       throw error;
     }
   },
@@ -76,7 +76,7 @@ const serviceService = {
       const response = await serviceApi.get(`/service/${serviceId}`);
       return response;
     } catch (error) {
-      console.error(' Lỗi fetching service:', error);
+      console.log(' Lỗi fetching service:', error);
       throw error;
     }
   },
@@ -87,7 +87,7 @@ const serviceService = {
       const response = await serviceApi.get(`/service/${serviceId}/addons/${addOnId}`);
       return response;
     } catch (error) {
-      console.error('Lỗi fetching service add-on:', error);
+      console.log('Lỗi fetching service add-on:', error);
       throw error;
     }
   },

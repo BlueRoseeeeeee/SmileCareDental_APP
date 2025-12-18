@@ -117,7 +117,7 @@ export default function InvoicesScreen() {
         setInvoices([]);
       }
     } catch (error) {
-      console.error('❌ Load invoices error:', error);
+      console.log('Load invoices error:', error);
       Alert.alert('Lỗi', 'Không thể tải danh sách hóa đơn');
       setInvoices([]);
     } finally {
@@ -178,7 +178,7 @@ export default function InvoicesScreen() {
         setDetailModalVisible(true);
       }
     } catch (error) {
-      console.error('❌ Get invoice detail error:', error);
+      console.log('Get invoice detail error:', error);
       Alert.alert('Lỗi', 'Không thể tải chi tiết hóa đơn');
     } finally {
       setLoading(false);

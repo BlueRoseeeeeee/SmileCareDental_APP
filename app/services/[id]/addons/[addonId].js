@@ -111,7 +111,7 @@ export default function ServiceAddOnDetail() {
         setError('Không tìm thấy thông tin dịch vụ');
       }
     } catch (error) {
-      console.error('Error fetching add-on detail:', error);
+      console.log('Error fetching add-on detail:', error);
       setError('Có lỗi xảy ra khi tải thông tin dịch vụ');
     } finally {
       setLoading(false);
