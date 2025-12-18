@@ -5,23 +5,23 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useAuth } from '../../src/contexts/AuthContext';
 import recordService from '../../src/services/recordService';

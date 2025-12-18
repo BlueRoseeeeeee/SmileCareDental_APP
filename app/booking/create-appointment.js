@@ -3,29 +3,29 @@
  * Booking Create Appointment Screen - Tạo phiếu khám
  */
 
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  ActivityIndicator,
-  Alert,
-  Linking,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useAuth } from '../../src/contexts/AuthContext';
-import appointmentService from '../../src/services/appointmentService';
-import scheduleConfigService from '../../src/services/scheduleConfigService';
-import { getEffectivePriceForDate, getPriceScheduleInfo, formatCurrency } from '../../src/utils/priceScheduleUtils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useAuth } from '../../src/contexts/AuthContext';
+import appointmentService from '../../src/services/appointmentService';
+import scheduleConfigService from '../../src/services/scheduleConfigService';
+import { formatCurrency, getEffectivePriceForDate, getPriceScheduleInfo } from '../../src/utils/priceScheduleUtils';
 
 dayjs.extend(isBetween);
 dayjs.extend(timezone);

@@ -3,8 +3,8 @@
  * @author: HoTram
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Alert } from 'react-native';
 import { router } from 'expo-router';
+import { Alert } from 'react-native';
 
 /**
  * Xử lý khi token hết hạn

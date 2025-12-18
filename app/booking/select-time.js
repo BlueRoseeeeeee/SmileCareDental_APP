@@ -3,24 +3,24 @@
  * Booking Select Time Screen - Chọn giờ khám
  */
 
-import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
   RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
-import slotService from '../../src/services/slotService';
 import scheduleConfigService from '../../src/services/scheduleConfigService';
-import { groupConsecutiveSlots, formatCurrency } from '../../src/utils/slotGrouping';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import slotService from '../../src/services/slotService';
+import { formatCurrency, groupConsecutiveSlots } from '../../src/utils/slotGrouping';
 
 const COLORS = {
   primary: '#2596be',

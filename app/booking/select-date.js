@@ -3,23 +3,23 @@
  * Booking Select Date Screen - Chọn ngày khám
  */
 
-import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
   RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { Calendar, CalendarList, Agenda, ExpandableCalendar, LocaleConfig } from 'react-native-calendars';
+import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { useAuth } from '../../src/contexts/AuthContext';
 import slotService from '../../src/services/slotService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ========== CẤU HÌNH LỊCH SANG TIẾNG VIỆT ==========
 // Bước 1: Import LocaleConfig từ 'react-native-calendars' (đã import ở dòng 17)

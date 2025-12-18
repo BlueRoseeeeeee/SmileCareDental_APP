@@ -3,25 +3,25 @@
  * Booking Select Service Screen - Chọn dịch vụ
  */
 
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  ActivityIndicator,
-  Alert,
-  RefreshControl,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useAuth } from '../../src/contexts/AuthContext';
-import serviceService from '../../src/services/serviceService';
-import recordService from '../../src/services/recordService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { useAuth } from '../../src/contexts/AuthContext';
+import recordService from '../../src/services/recordService';
+import serviceService from '../../src/services/serviceService';
 
 const COLORS = {
   primary: '#2596be',
