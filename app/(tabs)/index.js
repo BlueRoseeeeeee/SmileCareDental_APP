@@ -155,7 +155,7 @@ export default function HomeScreen() {
   const menuItems = [
     {
       id: 1,
-      title: 'Đặt lịch khám',
+      title: 'Đặt phiếu hẹn',
       icon: 'calendar-outline',
       color: '#4da6ff',
       bgColor: '#e6f4ff',
@@ -163,7 +163,7 @@ export default function HomeScreen() {
     },
     {
       id: 2,
-      title: 'Lịch của tôi',
+      title: 'Phiếu hẹn của tôi',
       icon: 'list-outline',
       color: '#52c41a',
       bgColor: '#f0ffe6',
@@ -187,7 +187,7 @@ export default function HomeScreen() {
     },
     {
       id: 5,
-      title: 'Hồ sơ',
+      title: 'Hồ sơ của tôi',
       icon: 'document-text-outline',
       color: '#ff4d4f',
       bgColor: '#fff1f0',
@@ -195,7 +195,7 @@ export default function HomeScreen() {
     },
     {
       id: 6,
-      title: 'Hóa đơn',
+      title: 'Hóa đơn của tôi',
       icon: 'card-outline',
       color: '#faad14',
       bgColor: '#fffbe6',
